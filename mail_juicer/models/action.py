@@ -8,11 +8,11 @@ from .enums import Flag
 
 class MoveAction(BaseModel):
     action: Literal["move"] = "move"
-    target: str
+    dest: str
     create_if_not_exists: bool = False
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage):
-        mailbox.move(message.uid, self.target)
+        mailbox.move(message.uid, self.dest)
 
 
 class DeleteAction(BaseModel):

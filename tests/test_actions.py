@@ -4,7 +4,7 @@ from mail_juicer.models.enums import Flag
 
 def test_move_action(mailbox, make_message):
 
-    moveAction = MoveAction(target="new_folder")
+    moveAction = MoveAction(dest="new_folder")
 
     mailbox.login("u", "p")
     mailbox.folder.create("new_folder")

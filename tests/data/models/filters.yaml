@@ -5,7 +5,7 @@
     operand: listes@ok.com
   actions:
     - action: move
-      target: foutoir/listes
+      dest: foutoir/listes
     - action: delete
 - name: from_equals
   condition:
