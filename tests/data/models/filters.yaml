@@ -2,7 +2,7 @@
   condition:
     field: TO
     operator: CONTAINS
-    operand: listes@mmill.eu
+    operand: listes@ok.com
   actions:
     - action: move
       target: foutoir/listes
@@ -11,7 +11,20 @@
   condition:
     field: FROM
     operator: EQUALS
-    operand: mathias@mmill.eu
+    operand: hello@ok.com
+  actions:
+    - action: flag
+      flag: FLAGGED
+
+- name: composed_condition
+  condition:
+    AND:
+      - field: FROM
+        operator: EQUALS
+        operand: hello@ok.com
+      - field: TO
+        operator: CONTAINS
+        operand: listes@ok.com
   actions:
     - action: flag
       flag: FLAGGED

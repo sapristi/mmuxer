@@ -13,12 +13,6 @@ class MessageField(Enum):
     BODY = "TEXT"
 
 
-class ConditionOperator(Enum):
-    OR = "OR"
-    AND = "AND"
-    NOT = "NOT"
-
-
 class Flag(Enum):
     SEEN = "SEEN"
     ANSWERED = "ANSWERED"

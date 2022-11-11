@@ -33,6 +33,7 @@ dev = [
 
 [tool.pytest.ini_options]
 background-cmd="python tests/imap_server.py"
+background-log=".imap_server.log"
 
 
 [tool.pycln]

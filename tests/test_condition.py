@@ -1,5 +1,5 @@
-from mail_juicer.models.condition import ConditionBase, ConditionComposed
-from mail_juicer.models.enums import ComparisonOperator, ConditionOperator, MessageField
+from mail_juicer.models.condition import AndCondition, BaseCondition, NotCondition, OrCondition
+from mail_juicer.models.enums import ComparisonOperator, MessageField
 
 
 def test_condition_base(mailbox, make_message):
@@ -15,21 +15,21 @@ def test_condition_base(mailbox, make_message):
     messages = list(mailbox.fetch())
     m = messages[0]
 
-    cond_ok = ConditionBase(
+    cond_ok = BaseCondition(
         field=MessageField.FROM_, operator=ComparisonOperator.EQUALS, operand="from@ok.com"
     )
     assert cond_ok.eval(m) is True
 
-    comp_cond_not = ConditionComposed(operator=ConditionOperator.NOT, operands=[cond_ok])
+    comp_cond_not = NotCondition(NOT=cond_ok)
     assert comp_cond_not.eval(m) is False
 
-    cond_ko = ConditionBase(
+    cond_ko = BaseCondition(
         field=MessageField.TO, operator=ComparisonOperator.CONTAINS, operand="something else"
     )
     assert cond_ko.eval(m) is False
 
-    comp_cond_or = ConditionComposed(operator=ConditionOperator.OR, operands=[cond_ok, cond_ko])
+    comp_cond_or = OrCondition(OR=[cond_ok, cond_ko])
     assert comp_cond_or.eval(m) is True
 
-    comp_cond_and = ConditionComposed(operator=ConditionOperator.AND, operands=[cond_ok, cond_ko])
+    comp_cond_and = AndCondition(AND=[cond_ok, cond_ko])
     assert comp_cond_and.eval(m) is False

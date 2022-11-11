@@ -3,10 +3,10 @@ from typing import ForwardRef, Union
 from imap_tools import MailMessage
 
 from .common import BaseModel
-from .enums import ComparisonOperator, ConditionOperator, MessageField
+from .enums import ComparisonOperator, MessageField
 
 
-class ConditionBase(BaseModel):
+class BaseCondition(BaseModel):
     field: MessageField
     operator: ComparisonOperator
     operand: str
@@ -20,23 +20,34 @@ class ConditionBase(BaseModel):
                 return self.operand == value
 
 
-ConditionComposed = ForwardRef("ConditionComposed")  # type: ignore
+AndCondition = ForwardRef("AndCondition")  # type: ignore
+OrCondition = ForwardRef("OrCondition")  # type: ignore
+NotCondition = ForwardRef("NotCondition")  # type: ignore
 
 
-class ConditionComposed(BaseModel):
-    operator: ConditionOperator
-    operands: list[Union[ConditionComposed, ConditionBase]]
+class AndCondition(BaseModel):
+    AND: list[Union[BaseCondition, AndCondition, OrCondition, NotCondition]]
 
     def eval(self, message: MailMessage):
-        match self.operator:
-            case ConditionOperator.OR:
-                return any(operand.eval(message) for operand in self.operands)
-            case ConditionOperator.AND:
-                return all(operand.eval(message) for operand in self.operands)
-            case ConditionOperator.NOT:
-                return not (self.operands[0].eval(message))
+        return all(operand.eval(message) for operand in self.AND)
 
 
-ConditionComposed.update_forward_refs()
+class OrCondition(BaseModel):
+    OR: list[Union[BaseCondition, AndCondition, OrCondition, NotCondition]]
 
-Condition = ConditionBase | ConditionComposed
+    def eval(self, message: MailMessage):
+        return any(operand.eval(message) for operand in self.OR)
+
+
+class NotCondition(BaseModel):
+    NOT: Union[BaseCondition, AndCondition, OrCondition, NotCondition]
+
+    def eval(self, message: MailMessage):
+        return not self.NOT.eval(message)
+
+
+AndCondition.update_forward_refs()
+OrCondition.update_forward_refs()
+NotCondition.update_forward_refs()
+
+Condition = Union[BaseCondition, AndCondition, OrCondition, NotCondition]
