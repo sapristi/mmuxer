@@ -1,0 +1,17 @@
+- name: test_to_contains
+  condition:
+    field: TO
+    operator: CONTAINS
+    operand: listes@mmill.eu
+  actions:
+    - action: move
+      target: foutoir/listes
+    - action: delete
+- name: from_equals
+  condition:
+    field: FROM
+    operator: EQUALS
+    operand: mathias@mmill.eu
+  actions:
+    - action: flag
+      flag: FLAGGED
