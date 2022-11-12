@@ -1,41 +1,29 @@
 import typer
 from devtools import debug
-from imap_tools import AND
 
-from .misc import make_mailbox, parse_config
-from .models import Filter
+from .cli.folder import app as folder_app
+from .cli.run import app as run_app
+from .config_state import state
 
-app = typer.Typer()
-
-
-@app.command()
-def check(config_file: typer.FileText = typer.Option(...)):
-    filters, settings = parse_config(config_file)
-    box = make_mailbox(settings)
-    debug(filters)
+app = typer.Typer(no_args_is_help=True)
 
 
-@app.command()
-def run_single(config_file: typer.FileText = typer.Option(...)):
-    filters, settings = parse_config(config_file)
-    box = make_mailbox(settings)
-    for msg in box.fetch(bulk=True):
-        print(msg.date, msg.subject, len(msg.text or msg.html))
-        Filter.apply_list(filters, box, msg)
+@app.callback()
+def common_parameters(
+    config_file: typer.FileText = typer.Option(...),
+):
+    state.parse_config(config_file)
 
 
 @app.command()
-def run_continuous(config_file: typer.FileText = typer.Option(...)):
-    filters, settings = parse_config(config_file)
-    box = make_mailbox(settings)
+def check():
+    """Load the config and connect to the IMAP server."""
+    state.create_mailbox()
+    debug(state.filters)
 
-    while True:
-        responses = box.idle.wait(timeout=60)
-        if responses:
-            for msg in box.fetch(AND(seen=False), mark_seen=False):
-                print(msg.uid, msg.date, msg.subject, len(msg.text or msg.html))
-                Filter.apply_list(filters, box, msg)
 
+app.add_typer(folder_app)
+app.add_typer(run_app)
 
 if __name__ == "__main__":
     app()

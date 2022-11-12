@@ -12,7 +12,7 @@ def test_move_action(mailbox, make_message):
     messages = list(mailbox.fetch())
     m = messages[0]
     assert len(messages) == 1
-    moveAction.apply(mailbox, m)
+    moveAction.apply(mailbox, m, False)
 
     messages = list(mailbox.fetch())
     assert len(messages) == 0
@@ -33,7 +33,7 @@ def test_delete_action(mailbox, make_message):
     messages = list(mailbox.fetch())
     m = messages[0]
     assert len(messages) == 1
-    deleteAction.apply(mailbox, m)
+    deleteAction.apply(mailbox, m, False)
 
     messages = list(mailbox.fetch())
     assert len(messages) == 0
@@ -52,7 +52,7 @@ def test_flag_actions(mailbox, make_message):
     assert len(messages) == 1
     print(m.flags)
     assert Flag.FLAGGED.name not in m.flags
-    flagAction.apply(mailbox, m)
+    flagAction.apply(mailbox, m, False)
 
     messages = list(mailbox.fetch())
     assert len(messages) == 1
@@ -61,7 +61,7 @@ def test_flag_actions(mailbox, make_message):
 
     assert m.uid == m_flagged.uid
 
-    unflagAction.apply(mailbox, m_flagged)
+    unflagAction.apply(mailbox, m_flagged, False)
     messages = list(mailbox.fetch())
     assert len(messages) == 1
     m_unflagged = messages[0]

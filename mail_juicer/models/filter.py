@@ -14,15 +14,16 @@ class GenericFilter(BaseModel):
     actions: list[Action]
     abort_next: bool = False
 
-    def apply(self, mailbox: BaseMailBox, message: MailMessage):
+    def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.condition.eval(message):
             for action in self.actions:
-                print(
-                    message.date, message.subject, len(message.text or message.html), "->", action
-                )
-                action.apply(mailbox, message)
+                action.apply(mailbox, message, dry_run)
             return True
         return False
+
+    def destinations(self):
+        """List destination targets of move actions."""
+        return [action.dest for action in self.actions if action.action == "move"]
 
 
 class BatchMoveItem(BaseModel):
@@ -30,9 +31,9 @@ class BatchMoveItem(BaseModel):
     dest: str
     mark_read: bool = False
 
-    def apply(self, mailbox: BaseMailBox, message: MailMessage):
+    def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.condition.eval(message):
-            MoveAction(dest=self.dest).apply(mailbox, message)
+            MoveAction(dest=self.dest).apply(mailbox, message, dry_run)
             return True
         return False
 
@@ -43,17 +44,27 @@ class BatchMoveFilter(BaseModel):
     items: list[BatchMoveItem]
     abort_next: bool = False
 
-    def apply(self, mailbox: BaseMailBox, message: MailMessage):
+    def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         for item in self.items:
-            item.apply(mailbox, message)
+            item.apply(mailbox, message, dry_run)
+
+    def destinations(self):
+        """List destination targets of move actions."""
+        return [item.dest for item in self.items]
 
 
-class Filter(BaseModel):
-    __root__: GenericFilter | BatchMoveFilter
+Filter = GenericFilter | BatchMoveFilter
 
-    @staticmethod
-    def apply_list(filters: list["Filter"], mailbox: BaseMailBox, message: MailMessage):
-        for f in filters:
-            applied = f.__root__.apply(mailbox, message)
-            if applied and f.__root__.abort_next:
-                break
+
+def parse_filter(filter_dict: dict):
+    class FilterParser(BaseModel):
+        __root__: Filter
+
+    return FilterParser.parse_obj(filter_dict).__root__
+
+
+def apply_list(filters: list[Filter], mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
+    for f in filters:
+        applied = f.apply(mailbox, message, dry_run)
+        if applied and f.abort_next:
+            break
