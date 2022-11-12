@@ -5,7 +5,7 @@ description = "Manage mail from your server."
 authors = [
     {name = "Mathias Millet", email="mathias@mmill.eu"},
 ]
-license = {file = "LICENSE.txt"}
+license = {file = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.6"
 
@@ -29,7 +29,12 @@ build-backend = "setuptools.build_meta"
 dev = [
     "pytest >= 7.0",
     "pre-commit >= 2.0",
+    "pytest-bg-process",
+    "pytz"
 ]
+
+[tool.setuptools.packages.find]
+include = ["mail_juicer"]  # package names should match these glob patterns (["*"] by default)
 
 [tool.pytest.ini_options]
 background-cmd="python tests/imap_server.py"
