@@ -1,24 +1,63 @@
+from abc import abstractmethod
 from typing import ForwardRef, Union
 
 from imap_tools import MailMessage
 
 from .common import BaseModel
-from .enums import ComparisonOperator, MessageField
+from .enums import ComparisonOperator
 
 
-class BaseCondition(BaseModel):
-    field: MessageField
-    operator: ComparisonOperator
-    operand: str
+class IBaseCondition(BaseModel):
+    operator: ComparisonOperator = ComparisonOperator.CONTAINS
+
+    @abstractmethod
+    def get_value(self, message: MailMessage) -> str:
+        pass
+
+    @abstractmethod
+    def get_operand(self) -> str:
+        pass
 
     def eval(self, message: MailMessage):
-        value = getattr(message, self.field.name.lower())
+        value = self.get_value(message)
         match self.operator:
             case ComparisonOperator.CONTAINS:
-                return self.operand in value
+                return self.get_operand() in value
             case ComparisonOperator.EQUALS:
-                return self.operand == value
+                return self.get_operand() == value
 
+
+class FromBaseCondition(IBaseCondition):
+    FROM: str
+
+    def get_value(self, message: MailMessage):
+        return message.from_
+
+    def get_operand(self) -> str:
+        return self.FROM
+
+
+class ToBaseCondition(IBaseCondition):
+    TO: str
+
+    def get_value(self, message: MailMessage):
+        return message.to
+
+    def get_operand(self) -> str:
+        return self.TO
+
+
+class SubjectBaseCondition(IBaseCondition):
+    SUBJECT: str
+
+    def get_value(self, message: MailMessage):
+        return message.subject
+
+    def get_operand(self) -> str:
+        return self.SUBJECT
+
+
+BaseCondition = FromBaseCondition | ToBaseCondition | SubjectBaseCondition
 
 AndCondition = ForwardRef("AndCondition")  # type: ignore
 OrCondition = ForwardRef("OrCondition")  # type: ignore

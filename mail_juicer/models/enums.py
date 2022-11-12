@@ -6,13 +6,6 @@ class ComparisonOperator(Enum):
     EQUALS = "EQUALS"
 
 
-class MessageField(Enum):
-    FROM_ = "FROM"
-    TO = "TO"
-    SUBJET = "SUBJECT"
-    BODY = "TEXT"
-
-
 class Flag(Enum):
     SEEN = "SEEN"
     ANSWERED = "ANSWERED"

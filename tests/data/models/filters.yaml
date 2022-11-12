@@ -1,17 +1,15 @@
 - name: test_to_contains
   condition:
-    field: TO
+    TO: listes@ok.com
     operator: CONTAINS
-    operand: listes@ok.com
   actions:
     - action: move
       dest: foutoir/listes
     - action: delete
 - name: from_equals
   condition:
-    field: FROM
+    FROM: hello@ok.com
     operator: EQUALS
-    operand: hello@ok.com
   actions:
     - action: flag
       flag: FLAGGED
@@ -19,12 +17,10 @@
 - name: composed_condition
   condition:
     AND:
-      - field: FROM
+      - FROM: hello@ok.com
         operator: EQUALS
-        operand: hello@ok.com
-      - field: TO
+      - TO: listes@ok.com
         operator: CONTAINS
-        operand: listes@ok.com
   actions:
     - action: flag
       flag: FLAGGED

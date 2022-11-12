@@ -1,5 +1,11 @@
-from mail_juicer.models.condition import AndCondition, BaseCondition, NotCondition, OrCondition
-from mail_juicer.models.enums import ComparisonOperator, MessageField
+from mail_juicer.models.condition import (
+    AndCondition,
+    FromBaseCondition,
+    NotCondition,
+    OrCondition,
+    ToBaseCondition,
+)
+from mail_juicer.models.enums import ComparisonOperator
 
 
 def test_condition_base(mailbox, make_message):
@@ -15,17 +21,16 @@ def test_condition_base(mailbox, make_message):
     messages = list(mailbox.fetch())
     m = messages[0]
 
-    cond_ok = BaseCondition(
-        field=MessageField.FROM_, operator=ComparisonOperator.EQUALS, operand="from@ok.com"
+    cond_ok = FromBaseCondition(
+        FROM="from@ok.com",
+        operator=ComparisonOperator.EQUALS,
     )
     assert cond_ok.eval(m) is True
 
     comp_cond_not = NotCondition(NOT=cond_ok)
     assert comp_cond_not.eval(m) is False
 
-    cond_ko = BaseCondition(
-        field=MessageField.TO, operator=ComparisonOperator.CONTAINS, operand="something else"
-    )
+    cond_ko = ToBaseCondition(TO="something else", operator=ComparisonOperator.CONTAINS)
     assert cond_ko.eval(m) is False
 
     comp_cond_or = OrCondition(OR=[cond_ok, cond_ko])
