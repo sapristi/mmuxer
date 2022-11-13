@@ -10,17 +10,18 @@ readme = "README.md"
 requires-python = ">=3.6"
 
 dependencies = [
-  "typer>=0.7, <0.8",
-  "pydantic>=1.10,<2",
+  "typer[all]>=0.7, <0.8",
+  "pydantic[dotenv]>=1.10,<2",
   "pyyaml",
-  "imap-tools"
+  "imap-tools",
+  "certifi",
 ]
 
 
 [build-system]
 requires = [
     "setuptools >= 60.9.3",
-    "setuptools_scm[toml] >= 6.2"
+    "setuptools_scm[toml] >= 6.2",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -30,7 +31,7 @@ dev = [
     "pytest >= 7.0",
     "pre-commit >= 2.0",
     "pytest-bg-process",
-    "pytz"
+    "pytz",
 ]
 
 [tool.setuptools.packages.find]

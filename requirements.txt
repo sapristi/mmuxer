@@ -1,3 +1,0 @@
-pydantic
-imap-tools
-pyyaml

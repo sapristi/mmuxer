@@ -27,7 +27,7 @@ class IBaseCondition(BaseModel):
                 return self.get_operand() == value
 
 
-class FromBaseCondition(IBaseCondition):
+class From(IBaseCondition):
     FROM: str
 
     def get_value(self, message: MailMessage):
@@ -36,8 +36,11 @@ class FromBaseCondition(IBaseCondition):
     def get_operand(self) -> str:
         return self.FROM
 
+    def __rich_repr__(self):
+        yield self.operator.name, self.FROM
 
-class ToBaseCondition(IBaseCondition):
+
+class To(IBaseCondition):
     TO: str
 
     def get_value(self, message: MailMessage):
@@ -46,8 +49,11 @@ class ToBaseCondition(IBaseCondition):
     def get_operand(self) -> str:
         return self.TO
 
+    def __rich_repr__(self):
+        yield self.operator.name, self.TO
 
-class SubjectBaseCondition(IBaseCondition):
+
+class Subject(IBaseCondition):
     SUBJECT: str
 
     def get_value(self, message: MailMessage):
@@ -56,37 +62,48 @@ class SubjectBaseCondition(IBaseCondition):
     def get_operand(self) -> str:
         return self.SUBJECT
 
-
-BaseCondition = FromBaseCondition | ToBaseCondition | SubjectBaseCondition
-
-AndCondition = ForwardRef("AndCondition")  # type: ignore
-OrCondition = ForwardRef("OrCondition")  # type: ignore
-NotCondition = ForwardRef("NotCondition")  # type: ignore
+    def __rich_repr__(self):
+        yield self.operator.name, self.SUBJECT
 
 
-class AndCondition(BaseModel):
-    AND: list[Union[BaseCondition, AndCondition, OrCondition, NotCondition]]
+BaseCondition = From | To | Subject
 
-    def eval(self, message: MailMessage):
-        return all(operand.eval(message) for operand in self.AND)
+All = ForwardRef("All")  # type: ignore
+Any = ForwardRef("Any")  # type: ignore
+Not = ForwardRef("Not")  # type: ignore
 
 
-class OrCondition(BaseModel):
-    OR: list[Union[BaseCondition, AndCondition, OrCondition, NotCondition]]
+class All(BaseModel):
+    ALL: list[Union[BaseCondition, All, Any, Not]]
 
     def eval(self, message: MailMessage):
-        return any(operand.eval(message) for operand in self.OR)
+        return all(operand.eval(message) for operand in self.ALL)
+
+    def __rich_repr__(self):
+        for item in self.ALL:
+            yield item
 
 
-class NotCondition(BaseModel):
-    NOT: Union[BaseCondition, AndCondition, OrCondition, NotCondition]
+class Any(BaseModel):
+    ANY: list[Union[BaseCondition, All, Any, Not]]
+
+    def eval(self, message: MailMessage):
+        return any(operand.eval(message) for operand in self.ANY)
+
+    def __rich_repr__(self):
+        for item in self.ANY:
+            yield item
+
+
+class Not(BaseModel):
+    NOT: Union[BaseCondition, All, Any, Not]
 
     def eval(self, message: MailMessage):
         return not self.NOT.eval(message)
 
 
-AndCondition.update_forward_refs()
-OrCondition.update_forward_refs()
-NotCondition.update_forward_refs()
+All.update_forward_refs()
+Any.update_forward_refs()
+Not.update_forward_refs()
 
-Condition = Union[BaseCondition, AndCondition, OrCondition, NotCondition]
+Condition = Union[BaseCondition, All, Any, Not]

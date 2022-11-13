@@ -1,13 +1,18 @@
+import logging
 import os
 import ssl
+import sys
 
 import certifi
 import yaml
 from imap_tools import BaseMailBox, MailBox
 
-from mail_juicer.models.filter import Filter, parse_filter
+from mail_juicer.models.action import Action, DeleteAction, FlagAction, MoveAction
+from mail_juicer.models.enums import Flag
+from mail_juicer.models.rule import Rule
+from mail_juicer.models.settings import Settings
 
-from .models import Filter, Settings
+logger = logging.getLogger(__name__)
 
 
 def make_ssl_context():
@@ -19,11 +24,19 @@ def make_ssl_context():
     return context
 
 
+default_actions = {
+    "delete": DeleteAction(),
+    "trash": MoveAction(dest="Trash"),
+    "mark_read": FlagAction(flag=Flag.SEEN),
+}
+
+
 class State:
     def __init__(self):
         self._settings = None
-        self._filters = None
+        self._rules = None
         self._mailbox = None
+        self.actions: dict[str, Action] = default_actions
 
     def create_mailbox(self):
         ssl_context = make_ssl_context()
@@ -32,9 +45,36 @@ class State:
         )
 
     def parse_config(self, config_raw):
-        config_dict = yaml.safe_load(config_raw)
-        self._settings = Settings(**config_dict["settings"])
-        self._filters = [parse_filter(filter_config) for filter_config in config_dict["filters"]]
+        try:
+            config_dict = yaml.safe_load(config_raw)
+        except Exception:
+            logger.exception("Failed loading config file, check that the yaml syntax is valid.")
+            raise
+
+        if (
+            not isinstance(config_dict, dict)
+            or (config_dict.keys() - {"rules", "settings", "actions"}) != set()
+            or "rules" not in config_dict
+            or "settings" not in config_dict
+        ):
+            logger.error(
+                "The config file should contain a mapping with the keys 'rules', 'settings' and 'actions' (optional)."
+            )
+            sys.exit(1)
+
+        try:
+            self._settings = Settings(**config_dict["settings"])
+        except Exception as exc:
+            logger.error("Failed parsing the 'settings' section of the configuration:")
+            logger.error(exc)
+            sys.exit(1)
+
+        try:
+            self._rules = [Rule.parse_obj(rule_config) for rule_config in config_dict["rules"]]
+        except Exception as exc:
+            logger.error("Failed parsing the 'rules' section of the configuration:")
+            logger.error(exc)
+            sys.exit(1)
 
     @property
     def settings(self) -> Settings:
@@ -43,10 +83,10 @@ class State:
         return self._settings
 
     @property
-    def filters(self) -> list[Filter]:
-        if self._filters is None:
-            raise Exception("Uninitialized filters")
-        return self._filters
+    def rules(self) -> list[Rule]:
+        if self._rules is None:
+            raise Exception("Uninitialized rules")
+        return self._rules
 
     @property
     def mailbox(self) -> BaseMailBox:

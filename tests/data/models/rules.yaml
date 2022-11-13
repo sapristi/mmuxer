@@ -1,22 +1,18 @@
-- name: test_to_contains
-  condition:
+- condition:
     TO: listes@ok.com
     operator: CONTAINS
   actions:
     - action: move
       dest: foutoir/listes
     - action: delete
-- name: from_equals
-  condition:
+- condition:
     FROM: hello@ok.com
     operator: EQUALS
   actions:
     - action: flag
       flag: FLAGGED
-
-- name: composed_condition
-  condition:
-    AND:
+- condition:
+    ALL:
       - FROM: hello@ok.com
         operator: EQUALS
       - TO: listes@ok.com
@@ -24,3 +20,10 @@
   actions:
     - action: flag
       flag: FLAGGED
+
+- condition:
+    TO: listes@ok.com
+    operator: CONTAINS
+  move_to: lists
+  actions:
+    - delete

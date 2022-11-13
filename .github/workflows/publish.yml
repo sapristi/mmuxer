@@ -53,14 +53,13 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         cache: 'pip'
-        cache-dependency-path: "poetry.lock"
 
     - name: Download built package
       uses: actions/download-artifact@v3
       with:
         name: dist
 
-    - name: Install pura and pytest
+    - name: Install  pytest
       shell: bash
       run: |
         WHL_NAME=$(ls pura-*.whl)
@@ -89,12 +88,6 @@ jobs:
       with:
         name: dist
         path: dist/
-
-    - name: Install poetry
-      uses: Gr1N/setup-poetry@v7
-
-    - name: Install coveo-pypi-cli
-      run: pip install coveo-pypi-cli
 
     - name: Determine the version for this release from the build
       id: current

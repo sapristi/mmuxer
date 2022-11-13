@@ -1,16 +1,26 @@
 import typer
-from devtools import debug
+from rich import print
+from rich.pretty import Node, pretty_repr
 
 from ..config_state import state
 
 app = typer.Typer(name="folder", callback=state.create_mailbox, no_args_is_help=True)
 
 
+def render_with_name(name, value):
+    value_repr = pretty_repr(value)
+    return Node(key_repr=name, value_repr=value_repr).render()
+
+
+def print_with_name(name, value):
+    print(render_with_name(name, value))
+
+
 @app.command()
 def list():
     """List existing folders."""
     folder_names = sorted((f.name for f in state.mailbox.folder.list()))
-    debug(folder_names)
+    print_with_name("folder_names", folder_names)
 
 
 @app.command()
@@ -34,33 +44,31 @@ def rename(old_name: str, new_name: str):
 @app.command()
 def show_destinations():
     """List destinations folders from your configuration."""
-    destinations = sorted({dest for filter_ in state.filters for dest in filter_.destinations()})
-    debug(destinations)
+    destinations = sorted({dest for rule in state.rules for dest in rule.destinations()})
+    print_with_name("[bold]destinations", destinations)
 
 
 @app.command()
 def compare_destinations():
     """Compare existing folders with destinations from the configuration"""
-    destinations = {dest for filter_ in state.filters for dest in filter_.destinations()}
+    destinations = {dest for rule in state.rules for dest in rule.destinations()}
     folder_names = {f.name for f in state.mailbox.folder.list()}
     folders_with_destination = sorted(destinations & folder_names)
     destinations_without_folder = sorted(destinations - folder_names)
     folders_without_destination = sorted(folder_names - destinations)
-    debug(
-        folders_with_destination=folders_with_destination,
-        destinations_without_folder=destinations_without_folder,
-        folders_without_destination=folders_without_destination,
-    )
+    print_with_name("[bold]folders_with_destination", folders_with_destination)
+    print_with_name("[bold]folders_without_destination", folders_without_destination)
+    print_with_name("[bold]destinations_without_folder", destinations_without_folder)
 
 
 @app.command()
 def create_missing_folders():
     """Create missing folders."""
-    destinations = {dest for filter_ in state.filters for dest in filter_.destinations()}
+    destinations = {dest for rule in state.rules for dest in rule.destinations()}
     folder_names = {f.name for f in state.mailbox.folder.list()}
     destinations_without_folder = sorted(destinations - folder_names)
 
-    debug(will_create_folders=destinations_without_folder)
+    print_with_name("will_create_folders", destinations_without_folder)
 
     input("Will create the given folders, is that oK? (Ctrl-c to quit)")
     for folder in destinations_without_folder:

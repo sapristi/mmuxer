@@ -1,11 +1,22 @@
 import typer
-from devtools import debug
 
 from .cli.folder import app as folder_app
 from .cli.run import app as run_app
 from .config_state import state
 
 app = typer.Typer(no_args_is_help=True)
+
+import logging
+
+from rich.logging import RichHandler
+from rich.pretty import pprint
+
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, show_time=False)],
+)
 
 
 @app.callback()
@@ -19,7 +30,7 @@ def common_parameters(
 def check():
     """Load the config and connect to the IMAP server."""
     state.create_mailbox()
-    debug(state.filters)
+    pprint(state.rules)
 
 
 app.add_typer(folder_app)
