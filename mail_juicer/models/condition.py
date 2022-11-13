@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import ForwardRef, Union
+from typing import ForwardRef, List, Union
 
 from imap_tools import MailMessage
 
@@ -74,7 +74,7 @@ Not = ForwardRef("Not")  # type: ignore
 
 
 class All(BaseModel):
-    ALL: list[Union[BaseCondition, All, Any, Not]]
+    ALL: List[Union[BaseCondition, All, Any, Not]]
 
     def eval(self, message: MailMessage):
         return all(operand.eval(message) for operand in self.ALL)
@@ -85,7 +85,7 @@ class All(BaseModel):
 
 
 class Any(BaseModel):
-    ANY: list[Union[BaseCondition, All, Any, Not]]
+    ANY: List[Union[BaseCondition, All, Any, Not]]
 
     def eval(self, message: MailMessage):
         return any(operand.eval(message) for operand in self.ANY)

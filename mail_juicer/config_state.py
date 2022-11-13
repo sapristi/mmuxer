@@ -2,6 +2,7 @@ import logging
 import os
 import ssl
 import sys
+from typing import List
 
 import certifi
 import yaml
@@ -103,7 +104,7 @@ class State:
         return self._settings
 
     @property
-    def rules(self) -> list[Rule]:
+    def rules(self) -> List[Rule]:
         if self._rules is None:
             raise Exception("Uninitialized rules")
         return self._rules

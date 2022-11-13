@@ -1,3 +1,5 @@
+from typing import List
+
 from imap_tools import BaseMailBox, MailMessage
 from pydantic import Field
 
@@ -10,7 +12,7 @@ class Rule(BaseModel):
     condition: Condition
     move_to: str | None
     keep_evaluating: bool = False
-    actions: list[str | Action] = Field(default_factory=list)
+    actions: List[str | Action] = Field(default_factory=list)
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.condition.eval(message):
@@ -19,7 +21,7 @@ class Rule(BaseModel):
             return True
         return False
 
-    def _actions(self) -> list[Action]:
+    def _actions(self) -> List[Action]:
         from ..config_state import state
 
         actions_str = [action for action in self.actions if isinstance(action, str)]
@@ -33,7 +35,7 @@ class Rule(BaseModel):
         return [action.dest for action in self._actions() if action.action == "move"]
 
 
-def apply_list(rules: list[Rule], mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
+def apply_list(rules: List[Rule], mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
     for rule in rules:
         applied = rule.apply(mailbox, message, dry_run)
         if applied and not rule.keep_evaluating:
