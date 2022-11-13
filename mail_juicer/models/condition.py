@@ -18,13 +18,13 @@ class IBaseCondition(BaseModel):
     def get_operand(self) -> str:
         pass
 
-    def eval(self, message: MailMessage):
+    def eval(self, message: MailMessage) -> bool:
         value = self.get_value(message)
-        match self.operator:
-            case ComparisonOperator.CONTAINS:
-                return self.get_operand() in value
-            case ComparisonOperator.EQUALS:
-                return self.get_operand() == value
+        if self.operator == ComparisonOperator.CONTAINS:
+            return self.get_operand() in value
+        if self.operator == ComparisonOperator.EQUALS:
+            return self.get_operand() == value
+        raise Exception(f"Unhandled operator {self.operator}")
 
 
 class From(IBaseCondition):
@@ -66,7 +66,7 @@ class Subject(IBaseCondition):
         yield self.operator.name, self.SUBJECT
 
 
-BaseCondition = From | To | Subject
+BaseCondition = Union[From, To, Subject]
 
 All = ForwardRef("All")  # type: ignore
 Any = ForwardRef("Any")  # type: ignore

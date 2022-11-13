@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Literal
+from typing import Literal, Union
 
 from imap_tools import BaseMailBox, MailMessage
 
@@ -70,7 +70,7 @@ class UnflagAction(BaseAction):
         return f"UNFLAG {format_message(message)} {self.flag.name}"
 
 
-Action = MoveAction | DeleteAction | FlagAction | UnflagAction
+Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]
 
 
 class ActionLoader(BaseModel):
