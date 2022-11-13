@@ -1,6 +1,6 @@
 [project]
 name = "mail_juicer"
-version = "0.1.0"
+version = "{{VERSION_PLACEHOLDER}}"
 description = "Manage mail from your server."
 authors = [
     {name = "Mathias Millet", email="mathias@mmill.eu"},
