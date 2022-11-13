@@ -4,7 +4,12 @@ from rich.pretty import Node, pretty_repr
 
 from ..config_state import state
 
-app = typer.Typer(name="folder", callback=state.create_mailbox, no_args_is_help=True)
+app = typer.Typer(
+    name="folder",
+    callback=state.create_mailbox,
+    no_args_is_help=True,
+    help="Various IMAP folder helpers.",
+)
 
 
 def render_with_name(name, value):

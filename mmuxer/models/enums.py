@@ -12,7 +12,6 @@ class Flag(Enum):
     FLAGGED = "FLAGGED"
     DELETED = "DELETED"
     DRAFT = "DRAFT"
-    RECENT = "RECENT"
 
     @property
     def imap(self):

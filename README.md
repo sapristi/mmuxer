@@ -1,9 +1,10 @@
 # Mail Muxer
 
 ![cover](assets/cover.png)
-Mail Muxer is a Python tool to help you manage your email. It is a replacement for the filters/sieves functionaly.
 
-It was designed to be intuitive and easy to use, by using compact configuration and sensible defaults: a rule can be as simple as
+Are you tired of managing IMAP filters through cumbersome, slow and unintuive web interfaces ? Then Mail Muxer is here to save you from this pain !
+
+Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming emails according to the given configuration. It was designed to be intuitive and easy to use, by using compact configuration and sensible defaults: a rule can be as simple as
 ```yaml
 - condition:
     FROM: example@email.org
@@ -20,11 +21,18 @@ It was designed to be intuitive and easy to use, by using compact configuration 
 
 In order to benefit from Mail Muxer, you will probably need a server, so that it can continuously monitor your IMAP box, and take actions accordingly.
 
-    mmuxer --config-filer config.yaml monitor
+    mmuxer --config-file config.yaml monitor
 
 You can also run it as a one-time command, so that it takes action on all the messages of your inbox:
 
-    mmuxer --config-filer config.yaml tidy
+    mmuxer --config-file config.yaml tidy
+
+In order to check that your configuration is valid, and that you can connect to your IMAP server:
+
+    mmuxer --config-file config.yaml check
+
+Finally, Mail Muxer includes tools to manage your IMAP folder, see the [Manage IMAP folders](#Manage-IAMP-folders) section
+
 
 ### Configuration
 
@@ -41,6 +49,10 @@ rules:
   - move_to: important
     condition:
       SUBJECT: important
+  - condition:
+      FROM: spammer@example.com
+    actions:
+      - delete
 
 settings:
   server: imap.email.net
@@ -49,3 +61,154 @@ settings:
 ```
 
 Note that the values in the settings section can also be provided as environemnt variables, or in a `.env` file.
+
+### Note on SSL
+
+If you get SSL erros while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.
+
+## Advanced usage
+
+### Conditions
+
+#### Base conditions
+
+The supported fields for the conditions are `TO`, `FROM` and `SUBJECT`.
+
+The comporison operators between the value of the email and the provided value are:
+- `CONTAINS`: matches if the email value contains the provided value **(default)**
+- `EQUALS`: matches if the email value is exactly the provided value
+
+#### Composed conditions
+
+It is also possible to compose conditions with boolean operators: 
+ - `ALL`: takes as input a list of conditions
+ - `ANY`: takes as input a list of conditions
+ - `NOT`: takes as input a single condition
+
+#### Example
+
+The following condition will match emails that are not from `someone@example.com`, and whose subject contains either `keyword1` or `keyword2`:
+
+```yaml
+condition:
+  ALL:
+    - NOT:
+        FROM: someone@example.com
+        operator: EQUALS
+    - ANY:
+      - SUBJECT: keyword1
+      - SUBJECT: keyword2
+```
+
+### Keep evaluating
+
+By default, once a rule condition matches an email, evaluation will stop, and sub-sequent rules will not be applied. This can be changed per rule by setting `keep_evaluating` to `true`:
+```yaml
+- condition:
+    FROM: example@email.org
+  move_to: some/folder
+  keep_evaluating: true
+```
+
+### Actions
+
+Actions allow to do more than just moving your emails around.
+
+Some common actions are pre-defined, and can be used like so:
+
+```yaml
+- condition:
+    FROM: example@email.org
+  actions:
+   - mark_read  # mark email as read
+   - trash      # move email to Trash folder
+   - delete     # deletes the email ()
+```
+
+
+Other actions are
+
+#### Flag / Unflag
+
+Allow to either set or unset an IMAP flag to a message. Possible flags are:
+- `SEEN`
+- `ANSWERED`
+- `FLAGGED` (often marked as a star in UIs)
+- `DELETED` (will delete the message)
+- `DRAFT`
+
+Examples:
+```yaml
+- condition:
+    FROM: example@email.org
+  actions:
+   - action: flag
+   - flag: SEEN
+```
+
+```yaml
+- condition:
+    FROM: example@email.org
+  actions:
+   - action: unflag
+   - flag: SEEN
+```
+
+#### Pre-configured actions
+
+It is possible to define actions globally, and re-use them across the rules:
+
+```yaml
+actions:
+  mark_important:
+    action: flag
+    flag: FLAGGED
+
+rules:
+  - condition:
+      FROM: example@email.org
+    actions:
+     - mark_important
+```
+
+### Manage IMAP folder
+
+Run the following to see the available commands:
+
+    mmuxer --config-file config.yaml folder --help
+
+The `compare-destinations` command ispecially useful, as it will compare the move destinations of your config file with the IMAP folders on your server, and display the differences (allowing you to spot mistakes in your configuration, or missing folders on your server).
+
+### SSL configuration
+
+Depending on the server your are connecting to, you may need specific cipher suite. You can specify it in the settings part of the configuration file:
+
+```
+settings:
+  ssl_ciphers: DEFAULT@SECLEVEL=1  # value that actually works for me
+```
+
+The value that actually worked for me was `DEFAULT@SECLEVEL=1` (I believe the default on most linux distributions is `DEFAULT@SECLEVEL=2`).
+
+See [the openssl page](https://www.openssl.org/docs/man1.0.2/man1/ciphers.html) about cipher suites (this escalated quickly).
+
+
+## What's next
+
+The current implementation is mostly feature complete for me, but here are some features that could be implemented:
+
+- add a `REGEX` condition operator
+- support more fields for conditions
+- add more actions:
+  - tag emails
+  - forward emails
+  - move destination based on regex match group
+  - automatic folder creation
+  - anything else ?
+- support OAuth / Gmail (I'm not sure how feasible that would be).
+
+Don't hesitate to ask, or make a pull request !
+
+## Credit
+
+This program relies on the mock IMAP server from [aioimaplib](https://github.com/bamthomas/aioimaplib) for it's tests, many thanks to them !

@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from typing import Literal, Union
 
@@ -5,6 +6,8 @@ from imap_tools import BaseMailBox, MailMessage
 
 from .common import BaseModel
 from .enums import Flag
+
+logger = logging.getLogger(__name__)
 
 
 def format_message(msg: MailMessage):
@@ -21,9 +24,9 @@ class BaseAction(BaseModel):
         pass
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
-        if dry_run:
-            print(self.format(message))
-        else:
+        logger.info(self.format(message))
+        if not dry_run:
+            logger.info(self.format(message))
             self._apply(mailbox, message)
 
 
