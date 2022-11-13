@@ -36,8 +36,12 @@ dev = [
     "pytz",
 ]
 
+
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
-include = ["mail_juicer"]  # package names should match these glob patterns (["*"] by default)
+include = ["mail_juicer*"]
 
 [tool.pytest.ini_options]
 background-cmd="python tests/imap_server.py"
