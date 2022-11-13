@@ -16,9 +16,10 @@ from mmuxer.models.settings import Settings
 logger = logging.getLogger(__name__)
 
 
-def make_ssl_context():
+def make_ssl_context(ssl_ciphers):
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.set_ciphers("DEFAULT@SECLEVEL=1")
+    if ssl_ciphers is not None:
+        context.set_ciphers(ssl_ciphers)
     context.load_verify_locations(
         cafile=os.path.relpath(certifi.where()), capath=None, cadata=None
     )
@@ -40,7 +41,7 @@ class State:
         self.actions: dict[str, Action] = default_actions
 
     def create_mailbox(self):
-        ssl_context = make_ssl_context()
+        ssl_context = make_ssl_context(self.settings.ssl_ciphers)
         self._mailbox = MailBox(self.settings.server, ssl_context=ssl_context).login(
             self.settings.username, self.settings.password
         )
