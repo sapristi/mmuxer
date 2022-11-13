@@ -1,6 +1,6 @@
 import yaml
 
-from mail_juicer.models.rule import Rule
+from mmuxer.models.rule import Rule
 
 
 def test_parse_rule(data):

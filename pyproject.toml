@@ -1,5 +1,5 @@
 [project]
-name = "mail_juicer"
+name = "mmuxer"
 version = "0.1"
 description = "Manage mail from your server."
 authors = [
@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mail_juicer = "mail_juicer.__main__:app"
+mmuxer = "mmuxer.__main__:app"
 
 [build-system]
 requires = [
@@ -41,7 +41,7 @@ dev = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["mail_juicer*"]
+include = ["mmuxer*"]
 
 [tool.pytest.ini_options]
 background-cmd="python tests/imap_server.py"

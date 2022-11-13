@@ -8,10 +8,10 @@ import certifi
 import yaml
 from imap_tools import BaseMailBox, MailBox
 
-from mail_juicer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
-from mail_juicer.models.enums import Flag
-from mail_juicer.models.rule import Rule
-from mail_juicer.models.settings import Settings
+from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
+from mmuxer.models.enums import Flag
+from mmuxer.models.rule import Rule
+from mmuxer.models.settings import Settings
 
 logger = logging.getLogger(__name__)
 

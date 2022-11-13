@@ -1,5 +1,5 @@
-from mail_juicer.models.action import DeleteAction, FlagAction, MoveAction, UnflagAction
-from mail_juicer.models.enums import Flag
+from mmuxer.models.action import DeleteAction, FlagAction, MoveAction, UnflagAction
+from mmuxer.models.enums import Flag
 
 
 def test_move_action(mailbox, make_message):

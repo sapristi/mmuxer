@@ -1,7 +1,7 @@
-# Mail Juicer
+# Mail Muxer
 
 ![cover](assets/cover.png)
-Mail Juicer is a Python tool to help you manage your email. It is a replacement for the filters/sieves functionaly.
+Mail Muxer is a Python tool to help you manage your email. It is a replacement for the filters/sieves functionaly.
 
 It was designed to be intuitive and easy to use, by using compact configuration and sensible defaults: a rule can be as simple as
 ```yaml
@@ -12,19 +12,23 @@ It was designed to be intuitive and easy to use, by using compact configuration 
 
 ## Basic Usage
 
+### Install
+
+    pip install mmuxer
+
 ### Running
 
-In order to benefit from Mail Juicer, you will probably need a server, so that it can continuously monitor your IMAP box, and take actions accordingly.
+In order to benefit from Mail Muxer, you will probably need a server, so that it can continuously monitor your IMAP box, and take actions accordingly.
 
-    mail_juicer --config-filer config.yaml monitor
+    mmuxer --config-filer config.yaml monitor
 
 You can also run it as a one-time command, so that it takes action on all the messages of your inbox:
 
-    mail_juicer --config-filer config.yaml tidy
+    mmuxer --config-filer config.yaml tidy
 
 ### Configuration
 
-Mail Juicer takes a configuration file as input, that will contain the settings to connect to your IMAP server, and the rules you want to apply.
+Mail Muxer takes a configuration file as input, that will contain the settings to connect to your IMAP server, and the rules you want to apply.
 
 Example:
 ```yaml

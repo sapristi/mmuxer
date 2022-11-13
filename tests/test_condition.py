@@ -1,5 +1,5 @@
-from mail_juicer.models.condition import All, Any, From, Not, To
-from mail_juicer.models.enums import ComparisonOperator
+from mmuxer.models.condition import All, Any, From, Not, To
+from mmuxer.models.enums import ComparisonOperator
 
 
 def test_condition_base(mailbox, make_message):
