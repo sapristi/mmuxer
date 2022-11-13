@@ -71,3 +71,7 @@ class UnflagAction(BaseAction):
 
 
 Action = MoveAction | DeleteAction | FlagAction | UnflagAction
+
+
+class ActionLoader(BaseModel):
+    __root__: Action

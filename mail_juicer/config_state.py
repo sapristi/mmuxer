@@ -7,7 +7,7 @@ import certifi
 import yaml
 from imap_tools import BaseMailBox, MailBox
 
-from mail_juicer.models.action import Action, DeleteAction, FlagAction, MoveAction
+from mail_juicer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mail_juicer.models.enums import Flag
 from mail_juicer.models.rule import Rule
 from mail_juicer.models.settings import Settings
@@ -69,12 +69,32 @@ class State:
             logger.error(exc)
             sys.exit(1)
 
-        try:
-            self._rules = [Rule.parse_obj(rule_config) for rule_config in config_dict["rules"]]
-        except Exception as exc:
-            logger.error("Failed parsing the 'rules' section of the configuration:")
-            logger.error(exc)
-            sys.exit(1)
+        parsed_rules = []
+        for rule_dict in config_dict["rules"]:
+            try:
+                parsed_rules.append(Rule.parse_obj(rule_dict))
+            except Exception as exc:
+                logger.error("Failed parsing the 'rules' section of the configuration:")
+                logger.error(rule_dict)
+                logger.error(exc)
+                sys.exit(1)
+        self._rules = parsed_rules
+
+        if "actions" in config_dict:
+            if not isinstance(config_dict["actions"], dict):
+                logger.error(f"'actions' value is not a mapping: {config_dict['actions']}")
+                sys.exit(1)
+            for action_name, action_dict in config_dict["actions"].items():
+                if action_name in self.actions:
+                    logger.warning(f"Overriding default action f{action_name}")
+                try:
+                    self.actions[action_name] = ActionLoader.parse_obj(action_dict).__root__
+                except Exception as exc:
+                    logger.error("Failed parsing the 'actions' section of the configuration:")
+                    logger.error(action_dict)
+                    logger.error(exc)
+                    sys.exit(1)
+            self._rules = parsed_rules
 
     @property
     def settings(self) -> Settings:
