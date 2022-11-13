@@ -18,28 +18,26 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
         pip install mmuxer
 
 2. Create configuration file:
+  ```yaml
+  rules:
+    - move_to: receipts
+      condition:
+        ANY:
+          - FROM: some_store@ok.ok
+          - FROM: some_other_store@store.net
+    - move_to: important
+      condition:
+        SUBJECT: important
+    - condition:
+        FROM: spammer@example.com
+      actions:
+        - delete
 
-        ```yaml
-        rules:
-          - move_to: receipts
-            condition:
-              ANY:
-                - FROM: some_store@ok.ok
-                - FROM: some_other_store@store.net
-          - move_to: important
-            condition:
-              SUBJECT: important
-          - condition:
-              FROM: spammer@example.com
-            actions:
-              - delete
-
-        settings:
-          server: imap.email.net
-          username: me@email.net
-          password: secret
-        ```
-
+  settings:
+    server: imap.email.net
+    username: me@email.net
+    password: secret
+  ```
 3. Check your configuration:
 
        mmuxer --config-file config.yaml check
@@ -50,16 +48,19 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
 5. Monitor your inbox:
 
-       mmuxer --config-file config.yaml monitor
+       mmuxer --config-file config.yaml run monitor
 
 6. Or apply on all messages of a given IMAP folder:
 
-       mmuxer --config-file config.yaml tidy --folder FOLDER
+       mmuxer --config-file config.yaml run tidy --folder FOLDER
 
+7. Finally, to get help on a given command, add a `--help` to it, e.g.
+
+       mmuxer --config-file config.yaml run --help
 
 ### Note on SSL
 
-If you get SSL erros while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.
+If you get SSL errors while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.
 
 ### Python compatibility
 
