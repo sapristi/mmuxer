@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from imap_tools import BaseMailBox, MailMessage
 from pydantic import Field
@@ -10,9 +10,9 @@ from .condition import Condition
 
 class Rule(BaseModel):
     condition: Condition
-    move_to: str | None
+    move_to: Union[str, None]
     keep_evaluating: bool = False
-    actions: List[str | Action] = Field(default_factory=list)
+    actions: List[Union[str, Action]] = Field(default_factory=list)
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.condition.eval(message):
