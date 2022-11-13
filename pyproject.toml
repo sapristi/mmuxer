@@ -1,11 +1,11 @@
 [project]
 name = "mail_juicer"
-version = "{{VERSION_PLACEHOLDER}}"
+version = "0.1"
 description = "Manage mail from your server."
 authors = [
     {name = "Mathias Millet", email="mathias@mmill.eu"},
 ]
-license = {file = "LICENSE"}
+license = {text = "AGPL-3.0"}
 readme = "README.md"
 requires-python = ">=3.6"
 
@@ -17,6 +17,8 @@ dependencies = [
   "certifi",
 ]
 
+[project.scripts]
+mail_juicer = "mail_juicer.__main__:app"
 
 [build-system]
 requires = [
