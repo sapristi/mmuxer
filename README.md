@@ -18,26 +18,26 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
         pip install mmuxer
 
 2. Create configuration file:
-  ```yaml
-  rules:
-    - move_to: receipts
-      condition:
-        ANY:
-          - FROM: some_store@ok.ok
-          - FROM: some_other_store@store.net
-    - move_to: important
-      condition:
-        SUBJECT: important
-    - condition:
-        FROM: spammer@example.com
-      actions:
-        - delete
+    ```yaml
+    rules:
+      - move_to: receipts
+        condition:
+          ANY:
+            - FROM: some_store@ok.ok
+            - FROM: some_other_store@store.net
+      - move_to: important
+        condition:
+          SUBJECT: important
+      - condition:
+          FROM: spammer@example.com
+        actions:
+          - delete
 
-  settings:
-    server: imap.email.net
-    username: me@email.net
-    password: secret
-  ```
+    settings:
+      server: imap.email.net
+      username: me@email.net
+      password: secret
+    ```
 3. Check your configuration:
 
        mmuxer --config-file config.yaml check
