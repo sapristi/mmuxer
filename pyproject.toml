@@ -17,7 +17,7 @@ dependencies = [
   "certifi",
 ]
 
-classfiers = [
+classifiers = [
   "Topic :: Communications :: Email :: Filters"
 ]
 [project.scripts]
