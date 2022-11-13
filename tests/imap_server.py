@@ -1,3 +1,4 @@
+# From https://github.com/bamthomas/aioimaplib
 #    aioimaplib : an IMAPrev4 lib using python asyncio
 #    Copyright (C) 2016  Bruno Thomas
 #
@@ -36,14 +37,15 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 sh = logging.StreamHandler()
 sh.setLevel(logging.INFO)
-sh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s " +
-                                  "[%(module)s:%(lineno)d] %(message)s"))
+sh.setFormatter(
+    logging.Formatter("%(asctime)s %(levelname)s " + "[%(module)s:%(lineno)d] %(message)s")
+)
 log.addHandler(sh)
 
-NONAUTH, AUTH, SELECTED, IDLE, LOGOUT = 'NONAUTH', 'AUTH', 'SELECTED', 'IDLE', 'LOGOUT'
-UID_RANGE_RE = re.compile(r'(?P<start>\d+):(?P<end>\d|\*)')
-CAPABILITIES = 'IDLE UIDPLUS MOVE ENABLE NAMESPACE'
-CRLF = b'\r\n'
+NONAUTH, AUTH, SELECTED, IDLE, LOGOUT = "NONAUTH", "AUTH", "SELECTED", "IDLE", "LOGOUT"
+UID_RANGE_RE = re.compile(r"(?P<start>\d+):(?P<end>\d|\*)")
+CAPABILITIES = "IDLE UIDPLUS MOVE ENABLE NAMESPACE"
+CRLF = b"\r\n"
 
 
 class InvalidUidSet(RuntimeError):
@@ -52,7 +54,7 @@ class InvalidUidSet(RuntimeError):
 
 
 class ServerState(object):
-    DEFAULT_MAILBOXES = ['INBOX', 'Trash', 'Sent', 'Drafts']
+    DEFAULT_MAILBOXES = ["INBOX", "Trash", "Sent", "Drafts"]
 
     def __init__(self):
         self.mailboxes = dict()
@@ -65,7 +67,7 @@ class ServerState(object):
             connection.transport.close()
         self.connections = dict()
 
-    def add_mail(self, to, mail, mailbox='INBOX'):
+    def add_mail(self, to, mail, mailbox="INBOX"):
         if to not in self.mailboxes:
             self.mailboxes[to] = dict()
         if mailbox not in self.mailboxes[to]:
@@ -77,12 +79,17 @@ class ServerState(object):
         return m.uid
 
     def max_uid(self, user, mailbox):
-        if user not in self.mailboxes or mailbox not in self.mailboxes[user] \
-            or len(self.mailboxes[user][mailbox]) == 0: return 0
+        if (
+            user not in self.mailboxes
+            or mailbox not in self.mailboxes[user]
+            or len(self.mailboxes[user][mailbox]) == 0
+        ):
+            return 0
         return max(self.mailboxes[user][mailbox], key=lambda msg: msg.uid).uid
 
     def max_id(self, user, mailbox):
-        if user not in self.mailboxes or mailbox not in self.mailboxes[user]: return 0
+        if user not in self.mailboxes or mailbox not in self.mailboxes[user]:
+            return 0
         return len(self.mailboxes[user][mailbox])
 
     def login(self, user_login, protocol):
@@ -96,7 +103,7 @@ class ServerState(object):
         if user_login not in self.subcriptions:
             self.subcriptions[user_login] = set()
 
-        print("INITIAL BOXES", self.mailboxes) 
+        print("INITIAL BOXES", self.mailboxes)
 
     def create_mailbox_if_not_exists(self, user_login, user_mailbox):
         if user_mailbox not in self.mailboxes[user_login]:
@@ -110,7 +117,7 @@ class ServerState(object):
 
     def imap_receive(self, user, mail, mailbox):
         uid = self.add_mail(user, mail, mailbox)
-        log.debug('created mail with UID: %s' % uid)
+        log.debug("created mail with UID: %s" % uid)
         if user in self.connections:
             self.connections[user].notify_new_mail(uid)
         return uid
@@ -132,11 +139,13 @@ class ServerState(object):
         print(f"LIST '{user}' '{reference}' '{mailbox_pattern}'")
         user_boxes = self.mailboxes[user]
         mb_re = re.compile(mailbox_pattern)
-        return sorted([
-            box_name for box_name in user_boxes.keys()
-            if box_name.startswith(reference)
-            and mb_re.match(box_name)
-        ])
+        return sorted(
+            [
+                box_name
+                for box_name in user_boxes.keys()
+                if box_name.startswith(reference) and mb_re.match(box_name)
+            ]
+        )
 
     def remove(self, message, user, mailbox):
         self.remove_byid(user, mailbox, message.id)
@@ -168,12 +177,13 @@ class ServerState(object):
         return range(min(id_moved), max(id_moved) + 1)
 
     def remove_byid(self, user, mailbox, id):
-        msg = self.mailboxes[user][mailbox].pop(id-1)
+        msg = self.mailboxes[user][mailbox].pop(id - 1)
         self._reindex(user, mailbox)
         return msg
 
     def _reindex(self, user, mailbox):
-        for idx, msg in enumerate(self.mailboxes[user][mailbox]): msg.id = idx + 1
+        for idx, msg in enumerate(self.mailboxes[user][mailbox]):
+            msg.id = idx + 1
 
 
 def critical_section(next_state):
@@ -181,7 +191,7 @@ def critical_section(next_state):
         async with self.state_condition:
             critical_func(self, *args, **kwargs)
             self.state = state
-            log.debug('state -> %s' % state)
+            log.debug("state -> %s" % state)
             self.state_condition.notify_all()
 
     def decorator(func):
@@ -193,16 +203,23 @@ def critical_section(next_state):
     return decorator
 
 
-command_re = re.compile(br'((DONE)|(?P<tag>\w+) (?P<cmd>[\w]+)([\w \.#@:\*"\(\)\{\}\[\]\+\-\\\%/]+)?$)')
-FETCH_HEADERS_RE = re.compile(r'.*BODY.PEEK\[HEADER.FIELDS \((?P<headers>.+)\)\].*')
+command_re = re.compile(
+    rb'((DONE)|(?P<tag>\w+) (?P<cmd>[\w]+)([\w \.#@:\*"\(\)\{\}\[\]\+\-\\\%/]+)?$)'
+)
+FETCH_HEADERS_RE = re.compile(r".*BODY.PEEK\[HEADER.FIELDS \((?P<headers>.+)\)\].*")
 
 
 class ImapProtocol(asyncio.Protocol):
     IDLE_STILL_HERE_PERIOD_SECONDS = 10
     DEFAULT_QUOTA = 5000
 
-    def __init__(self, server_state, fetch_chunk_size=0, capabilities=CAPABILITIES,
-                 loop=asyncio.get_event_loop()):
+    def __init__(
+        self,
+        server_state,
+        fetch_chunk_size=0,
+        capabilities=CAPABILITIES,
+        loop=asyncio.get_event_loop(),
+    ):
         self.uidvalidity = int(datetime.now().timestamp())
         self.capabilities = capabilities
         self.state_to_send = list()
@@ -221,7 +238,7 @@ class ImapProtocol(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        transport.write('* OK IMAP4rev1 MockIMAP Server ready\r\n'.encode())
+        transport.write("* OK IMAP4rev1 MockIMAP Server ready\r\n".encode())
 
     def data_received(self, data):
         print("DATA received", data, self.user_login)
@@ -230,7 +247,9 @@ class ImapProtocol(asyncio.Protocol):
             return
         for cmd_line in data.splitlines():
             if command_re.match(cmd_line) is None:
-                self.send_untagged_line('BAD Error in IMAP command : Unknown command (%r).' % cmd_line)
+                self.send_untagged_line(
+                    "BAD Error in IMAP command : Unknown command (%r)." % cmd_line
+                )
             else:
                 command_array = [token.strip('"') for token in cmd_line.decode().rstrip().split()]
                 print("COMMANd", command_array)
@@ -253,28 +272,30 @@ class ImapProtocol(asyncio.Protocol):
     def exec_command(self, tag, command_array):
         command = command_array[0].lower()
         parameters = command_array[1:]
-        if command == 'uid':
+        if command == "uid":
             command = command_array[1].lower()
-            parameters = ['uid'] + command_array[2:]
+            parameters = ["uid"] + command_array[2:]
         if not hasattr(self, command):
             return self.error(tag, 'Command "%s" not implemented' % command)
         self.loop.call_later(self.delay_seconds, lambda: getattr(self, command)(tag, *parameters))
 
-    def send_untagged_line(self, response, encoding='utf-8', continuation=False, max_chunk_size=0):
-        self.send_raw_untagged_line(response.encode(encoding=encoding), continuation, max_chunk_size)
+    def send_untagged_line(self, response, encoding="utf-8", continuation=False, max_chunk_size=0):
+        self.send_raw_untagged_line(
+            response.encode(encoding=encoding), continuation, max_chunk_size
+        )
 
     def send_raw_untagged_line(self, raw_response, continuation=False, max_chunk_size=0):
-        prefix = b'+ ' if continuation else b'* '
+        prefix = b"+ " if continuation else b"* "
         raw_line = prefix + raw_response + CRLF
         if max_chunk_size:
             for nb_chunk in range(ceil(len(raw_line) / max_chunk_size)):
                 chunk_start_index = nb_chunk * max_chunk_size
-                self.send(raw_line[chunk_start_index:chunk_start_index + max_chunk_size])
+                self.send(raw_line[chunk_start_index : chunk_start_index + max_chunk_size])
         else:
             self.send(raw_line)
 
     def send_tagged_line(self, tag, response):
-        self.send('{tag} {response}\r\n'.format(tag=tag, response=response).encode())
+        self.send("{tag} {response}\r\n".format(tag=tag, response=response).encode())
 
     def send(self, _bytes):
         log.debug("Sending %r", _bytes)
@@ -285,15 +306,15 @@ class ImapProtocol(asyncio.Protocol):
         print("LOGIN START")
         self.user_login = args[0]
         self.server_state.login(self.user_login, self)
-        self.send_untagged_line('CAPABILITY IMAP4rev1 %s' % self.capabilities)
-        self.send_tagged_line(tag, 'OK LOGIN completed')
+        self.send_untagged_line("CAPABILITY IMAP4rev1 %s" % self.capabilities)
+        self.send_tagged_line(tag, "OK LOGIN completed")
         print("LOGIN END", self.user_login)
 
     @critical_section(next_state=LOGOUT)
     def logout(self, tag, *args):
         self.server_state.login(self.user_login, self)
-        self.send_untagged_line('BYE Logging out')
-        self.send_tagged_line(tag, 'OK LOGOUT completed')
+        self.send_untagged_line("BYE Logging out")
+        self.send_tagged_line(tag, "OK LOGOUT completed")
         self.transport.close()
 
     @critical_section(next_state=SELECTED)
@@ -307,15 +328,15 @@ class ImapProtocol(asyncio.Protocol):
         self.idle_tag = tag
 
         def still_here():
-            self.send_untagged_line('OK Still here')
+            self.send_untagged_line("OK Still here")
             self.idle_task = self.loop.call_later(self.IDLE_STILL_HERE_PERIOD_SECONDS, still_here)
 
         self.idle_task = self.loop.call_later(self.IDLE_STILL_HERE_PERIOD_SECONDS, still_here)
-        self.send_untagged_line('idling', continuation=True)
+        self.send_untagged_line("idling", continuation=True)
 
     @critical_section(next_state=SELECTED)
     def done(self, _, *args):
-        self.send_tagged_line(self.idle_tag, 'OK IDLE terminated')
+        self.send_tagged_line(self.idle_tag, "OK IDLE terminated")
         self.idle_task.cancel()
         self.idle_task = None
         self.idle_tag = None
@@ -323,7 +344,7 @@ class ImapProtocol(asyncio.Protocol):
     @critical_section(next_state=AUTH)
     def close(self, tag, *args):
         self.user_mailbox = None
-        self.send_tagged_line(tag, 'OK CLOSE completed.')
+        self.send_tagged_line(tag, "OK CLOSE completed.")
 
     async def wait(self, state):
         async with self.state_condition:
@@ -333,77 +354,102 @@ class ImapProtocol(asyncio.Protocol):
         mailbox_name = args[0]
         self.server_state.create_mailbox_if_not_exists(self.user_login, mailbox_name)
         mailbox = self.server_state.get_mailbox_messages(self.user_login, mailbox_name)
-        self.send_untagged_line('FLAGS (\Answered \Flagged \Deleted \Seen \Draft)')
-        self.send_untagged_line('OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft \*)] Flags permitted.')
-        self.send_untagged_line('{nb_messages} EXISTS'.format(nb_messages=len(mailbox)))
-        self.send_untagged_line('{nb_messages} RECENT'.format(nb_messages=0))
-        self.send_untagged_line('OK [UIDVALIDITY {uidvalidity}] UIDs valid'.format(uidvalidity=self.uidvalidity))
-        self.send_untagged_line('OK [UIDNEXT {next_uid}] Predicted next UID'.format(
-            next_uid=self.server_state.max_uid(self.user_login, mailbox_name) + 1))
-        self.send_tagged_line(tag, 'OK [READ] Select completed (0.000 secs).')
+        self.send_untagged_line("FLAGS (\Answered \Flagged \Deleted \Seen \Draft)")
+        self.send_untagged_line(
+            "OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft \*)] Flags permitted."
+        )
+        self.send_untagged_line("{nb_messages} EXISTS".format(nb_messages=len(mailbox)))
+        self.send_untagged_line("{nb_messages} RECENT".format(nb_messages=0))
+        self.send_untagged_line(
+            "OK [UIDVALIDITY {uidvalidity}] UIDs valid".format(uidvalidity=self.uidvalidity)
+        )
+        self.send_untagged_line(
+            "OK [UIDNEXT {next_uid}] Predicted next UID".format(
+                next_uid=self.server_state.max_uid(self.user_login, mailbox_name) + 1
+            )
+        )
+        self.send_tagged_line(tag, "OK [READ] Select completed (0.000 secs).")
 
     def search(self, tag, *args_param):
         args = list(args_param)
         by_uid = False
         args.reverse()
 
-        if args[-1] == 'uid':
+        if args[-1] == "uid":
             args.pop()
             by_uid = True
 
         charset, keyword, unkeyword, older, younger, range_ = None, None, None, None, None, None
-        if args and 'CHARSET' == args[-1].upper():
+        if args and "CHARSET" == args[-1].upper():
             args.pop()
             charset = args.pop()
-        if args and 'KEYWORD' == args[-1].upper():
+        if args and "KEYWORD" == args[-1].upper():
             args.pop()
             keyword = args.pop()
-        if args and 'UNKEYWORD' == args[-1].upper():
+        if args and "UNKEYWORD" == args[-1].upper():
             args.pop()
             unkeyword = args.pop()
-        if args and 'OLDER' == args[-1].upper():
+        if args and "OLDER" == args[-1].upper():
             args.pop()
             older = int(args.pop())
-        if args and 'YOUNGER' == args[-1].upper():
+        if args and "YOUNGER" == args[-1].upper():
             args.pop()
             younger = int(args.pop())
         match_range = None if len(args) == 0 else UID_RANGE_RE.match(args[-1])
         if match_range:
             args.pop()
-            start = int(match_range.group('start'))
-            if match_range.group('end') == '*':
+            start = int(match_range.group("start"))
+            if match_range.group("end") == "*":
                 end = sys.maxsize
             else:
-                end = int(match_range.group('end')) + 1
+                end = int(match_range.group("end")) + 1
             range_ = range(start, end)
 
-        all = 'ALL' in args
+        all = "ALL" in args
 
         self.send_untagged_line(
-            'SEARCH {msg_uids}'.format(msg_uids=' '.join(
-                self.memory_search(all, keyword, unkeyword, older, younger, by_uid=by_uid, range_=range_))))
-        self.send_tagged_line(tag, 'OK %sSEARCH completed' % ('UID ' if by_uid else ''))
+            "SEARCH {msg_uids}".format(
+                msg_uids=" ".join(
+                    self.memory_search(
+                        all, keyword, unkeyword, older, younger, by_uid=by_uid, range_=range_
+                    )
+                )
+            )
+        )
+        self.send_tagged_line(tag, "OK %sSEARCH completed" % ("UID " if by_uid else ""))
 
     def memory_search(self, all, keyword, unkeyword, older, younger, by_uid=False, range_=None):
         def item_match(msg):
-            return all or \
-                   (keyword is not None and keyword in msg.flags) or \
-                   (unkeyword is not None and unkeyword not in msg.flags) or \
-                   (range_ is not None and msg.uid in range_) or \
-                   (older is not None and datetime.now(tz=utc) - timedelta(seconds=older) > msg.date) or \
-                   (younger is not None and datetime.now(tz=utc) - timedelta(seconds=younger) < msg.date)
+            return (
+                all
+                or (keyword is not None and keyword in msg.flags)
+                or (unkeyword is not None and unkeyword not in msg.flags)
+                or (range_ is not None and msg.uid in range_)
+                or (
+                    older is not None
+                    and datetime.now(tz=utc) - timedelta(seconds=older) > msg.date
+                )
+                or (
+                    younger is not None
+                    and datetime.now(tz=utc) - timedelta(seconds=younger) < msg.date
+                )
+            )
 
-        return [str(msg.uid if by_uid else msg.id)
-                for msg in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox)
-                if item_match(msg)]
+        return [
+            str(msg.uid if by_uid else msg.id)
+            for msg in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox)
+            if item_match(msg)
+        ]
 
     def store(self, tag, *args):
         print("STORE", args)
         arg_list = list(args)
-        if arg_list[0] == 'uid':
+        if arg_list[0] == "uid":
             arg_list = list(args[1:])
         uid = int(arg_list[0])  # args = ['12', '+FLAGS', '(FOO)']
-        flags = ' '.join(arg_list[2:]).strip('()').split() # only support one flag and do not handle replacement (without + sign)
+        flags = (
+            " ".join(arg_list[2:]).strip("()").split()
+        )  # only support one flag and do not handle replacement (without + sign)
         print("FLAGGING", uid, "with", flags)
         for message in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox):
             print("MESSAGE", message, message.uid)
@@ -414,39 +460,46 @@ class ImapProtocol(asyncio.Protocol):
                     message.flags = list(set(message.flags) - set(flags))
                 else:
                     print("WTF", args_list[1])
-                self.send_untagged_line('{uid} FETCH (UID {uid} FLAGS ({flags}))'.format(
-                    uid=uid, flags=' '.join(message.flags)))
-        self.send_tagged_line(tag, 'OK Store completed.')
+                self.send_untagged_line(
+                    "{uid} FETCH (UID {uid} FLAGS ({flags}))".format(
+                        uid=uid, flags=" ".join(message.flags)
+                    )
+                )
+        self.send_tagged_line(tag, "OK Store completed.")
 
     def fetch(self, tag, *args):
         arg_list = list(args)
         by_uid = False
-        if arg_list[0] == 'uid':
+        if arg_list[0] == "uid":
             by_uid = True
             arg_list = list(args[1:])
         try:
             fetch_range = self._build_sequence_range(arg_list[0])
         except InvalidUidSet:
-            return self.error(tag, 'Error in IMAP command: Invalid uidset')
+            return self.error(tag, "Error in IMAP command: Invalid uidset")
         parts = arg_list[1:]
-        parts_str = ' '.join(parts)
+        parts_str = " ".join(parts)
         for message in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox):
-            if (by_uid and message.uid in fetch_range) or (not by_uid and message.id in fetch_range):
+            if (by_uid and message.uid in fetch_range) or (
+                not by_uid and message.id in fetch_range
+            ):
                 response = self._build_fetch_response(message, parts, by_uid=by_uid)
-                if 'BODY.PEEK' not in parts_str and ('BODY[]' in parts_str or 'RFC822' in parts_str):
-                    message.flags.append('\Seen')
+                if "BODY.PEEK" not in parts_str and (
+                    "BODY[]" in parts_str or "RFC822" in parts_str
+                ):
+                    message.flags.append("\Seen")
                 self.send_raw_untagged_line(response)
-        self.send_tagged_line(tag, 'OK FETCH completed.')
+        self.send_tagged_line(tag, "OK FETCH completed.")
 
     def _build_sequence_range(self, uid_pattern):
-        range_re = re.compile(r'(\d+):(\d+|\*)')
+        range_re = re.compile(r"(\d+):(\d+|\*)")
         match = range_re.match(uid_pattern)
         if match:
             start = int(match.group(1))
             if start <= 0:
                 raise InvalidUidSet()
 
-            if match.group(2) == '*':
+            if match.group(2) == "*":
                 return range(start, sys.maxsize)
 
             end = int(match.group(2))
@@ -456,57 +509,71 @@ class ImapProtocol(asyncio.Protocol):
         return [int(uid_pattern)]
 
     def _build_fetch_response(self, message, parts, by_uid=True):
-        response = ('%d FETCH (UID %s' % (message.id, message.uid)).encode() if by_uid \
-            else ('%d FETCH (' % message.id).encode()
+        response = (
+            ("%d FETCH (UID %s" % (message.id, message.uid)).encode()
+            if by_uid
+            else ("%d FETCH (" % message.id).encode()
+        )
         for part in parts:
-            if part.startswith('(') or part.endswith(')'):
-                part = part.strip('()')
-            if not response.endswith(b' ') and not response.endswith(b'('):
-                response += b' '
-            if part == 'UID' and not by_uid:
-                response += ('UID %s' % message.uid).encode()
-            if part == 'BODY[]' or part == 'BODY.PEEK[]' or part == 'RFC822':
-                response += ('%s {%s}\r\n' % (part, len(message.as_bytes()))).encode() + message.as_bytes()
-            if part == 'BODY.PEEK[HEADER.FIELDS':
-                fetch_header = FETCH_HEADERS_RE.match(' '.join(parts))
+            if part.startswith("(") or part.endswith(")"):
+                part = part.strip("()")
+            if not response.endswith(b" ") and not response.endswith(b"("):
+                response += b" "
+            if part == "UID" and not by_uid:
+                response += ("UID %s" % message.uid).encode()
+            if part == "BODY[]" or part == "BODY.PEEK[]" or part == "RFC822":
+                response += (
+                    "%s {%s}\r\n" % (part, len(message.as_bytes()))
+                ).encode() + message.as_bytes()
+            if part == "BODY.PEEK[HEADER.FIELDS":
+                fetch_header = FETCH_HEADERS_RE.match(" ".join(parts))
                 if fetch_header:
-                    headers = fetch_header.group('headers')
-                    message_headers = Message(policy=Compat32(linesep='\r\n'))
+                    headers = fetch_header.group("headers")
+                    message_headers = Message(policy=Compat32(linesep="\r\n"))
                     for hk in headers.split():
-                        message_headers[hk] = message.email.get(hk, '')
-                    response += ('BODY[HEADER.FIELDS (%s)] {%d}\r\n' %
-                                 (headers, len(message_headers.as_bytes()))).encode() + message_headers.as_bytes()
-            if part == 'FLAGS':
-                response += ('FLAGS (%s)' % ' '.join(message.flags)).encode()
-        response = response.strip(b' ')
-        response += b')'
+                        message_headers[hk] = message.email.get(hk, "")
+                    response += (
+                        "BODY[HEADER.FIELDS (%s)] {%d}\r\n"
+                        % (headers, len(message_headers.as_bytes()))
+                    ).encode() + message_headers.as_bytes()
+            if part == "FLAGS":
+                response += ("FLAGS (%s)" % " ".join(message.flags)).encode()
+        response = response.strip(b" ")
+        response += b")"
         return response
 
     def append(self, tag, *args):
         mailbox_name = args[0]
-        size = args[-1].strip('{}')
+        size = args[-1].strip("{}")
         self.append_literal_command = (tag, mailbox_name, int(size))
-        self.send_untagged_line('Ready for literal data', continuation=True)
+        self.send_untagged_line("Ready for literal data", continuation=True)
 
     def append_literal(self, data):
         tag, mailbox_name, size = self.append_literal_command
         if data == CRLF:
-            if 'UIDPLUS' in self.capabilities:
-                self.send_tagged_line(tag, 'OK [APPENDUID %s %s] APPEND completed.' %
-                                      (self.uidvalidity, self.server_state.max_uid(self.user_login, mailbox_name)))
+            if "UIDPLUS" in self.capabilities:
+                self.send_tagged_line(
+                    tag,
+                    "OK [APPENDUID %s %s] APPEND completed."
+                    % (self.uidvalidity, self.server_state.max_uid(self.user_login, mailbox_name)),
+                )
             else:
-                self.send_tagged_line(tag, 'OK APPEND completed.')
+                self.send_tagged_line(tag, "OK APPEND completed.")
             self.append_literal_command = None
             return
 
         literal_data, rest = data[:size], data[size:]
         if len(literal_data) < size:
-            self.send_tagged_line(self.append_literal_command[0],
-                                  'BAD literal length : expected %s but was %s' % (size, len(literal_data)))
+            self.send_tagged_line(
+                self.append_literal_command[0],
+                "BAD literal length : expected %s but was %s" % (size, len(literal_data)),
+            )
             self.append_literal_command = None
         elif rest and rest != CRLF:
-            self.send_tagged_line(self.append_literal_command[0],
-                                  'BAD literal trailing data : expected CRLF but got %s' % (rest))
+            self.send_tagged_line(
+                self.append_literal_command[0],
+                "BAD literal trailing data : expected CRLF but got %s" % (rest),
+            )
         else:
             m = email.message_from_bytes(data)
             self.server_state.add_mail(self.user_login, Mail(m), mailbox_name)
@@ -516,169 +583,178 @@ class ImapProtocol(asyncio.Protocol):
 
     def expunge(self, tag, *args):
         expunge_range = range(0, sys.maxsize)
-        uid_response = ''
-        if args and args[0] == 'uid':
-            uid_response = 'UID '
+        uid_response = ""
+        if args and args[0] == "uid":
+            uid_response = "UID "
             if len(args) > 1:
                 try:
                     expunge_range = self._build_sequence_range(args[1])
                 except InvalidUidSet:
-                    return self.error(tag, 'Error in IMAP command: Invalid uidset')
-        for message in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox).copy():
+                    return self.error(tag, "Error in IMAP command: Invalid uidset")
+        for message in self.server_state.get_mailbox_messages(
+            self.user_login, self.user_mailbox
+        ).copy():
             if message.uid in expunge_range:
                 if "\\Deleted" in message.flags:
                     self.server_state.remove(message, self.user_login, self.user_mailbox)
-                    self.send_untagged_line('{msg_uid} EXPUNGE'.format(msg_uid=message.uid))
-        self.send_tagged_line(tag, 'OK %sEXPUNGE completed.' % uid_response)
+                    self.send_untagged_line("{msg_uid} EXPUNGE".format(msg_uid=message.uid))
+        self.send_tagged_line(tag, "OK %sEXPUNGE completed." % uid_response)
 
     def capability(self, tag, *args):
-        self.send_untagged_line('CAPABILITY IMAP4rev1 YESAUTH')
-        self.send_tagged_line(tag, 'OK Pre-login capabilities listed, post-login capabilities have more')
+        self.send_untagged_line("CAPABILITY IMAP4rev1 YESAUTH")
+        self.send_tagged_line(
+            tag, "OK Pre-login capabilities listed, post-login capabilities have more"
+        )
 
     def namespace(self, tag):
         self.send_untagged_line('NAMESPACE (("" "/")) NIL NIL')
-        self.send_tagged_line(tag, 'OK NAMESPACE command completed')
+        self.send_tagged_line(tag, "OK NAMESPACE command completed")
 
     def enable(self, tag, *args):
-        self.send_tagged_line(tag, 'OK %s enabled' % ' '.join(args))
+        self.send_tagged_line(tag, "OK %s enabled" % " ".join(args))
 
     def copy(self, tag, *args):
         message_set, mailbox = args[0:-1], args[-1]
         self.server_state.copy(self.user_login, self.user_mailbox, mailbox, message_set)
-        self.send_tagged_line(tag, 'OK COPY completed.')
+        self.send_tagged_line(tag, "OK COPY completed.")
 
     def move(self, tag, *args):
         args_list = list(args)
         args_list.reverse()
-        msg_attribute = 'id'
-        if args[-1] == 'uid':
-            msg_attribute = 'uid'
+        msg_attribute = "id"
+        if args[-1] == "uid":
+            msg_attribute = "uid"
         mailbox, message_set = args_list[0:2]
         seq_range = self._build_sequence_range(message_set)
-        seq_moved = self.server_state.move(self.user_login, self.user_mailbox, mailbox, seq_range, msg_attribute)
-        if 'UIDPLUS' in self.capabilities:
+        seq_moved = self.server_state.move(
+            self.user_login, self.user_mailbox, mailbox, seq_range, msg_attribute
+        )
+        if "UIDPLUS" in self.capabilities:
             self.send_untagged_line(
-                'OK [COPYUID %d %d:%d %d:%d]' % (self.uidvalidity,
-                                                 seq_range.start, seq_range.stop-1,
-                                                 seq_moved.start, seq_moved.stop-1))
+                "OK [COPYUID %d %d:%d %d:%d]"
+                % (
+                    self.uidvalidity,
+                    seq_range.start,
+                    seq_range.stop - 1,
+                    seq_moved.start,
+                    seq_moved.stop - 1,
+                )
+            )
         for msg_id in seq_moved:
-            self.send_untagged_line('{msg_id} EXPUNGE'.format(msg_id=msg_id))
-        self.send_tagged_line(tag, 'OK Done')
+            self.send_untagged_line("{msg_id} EXPUNGE".format(msg_id=msg_id))
+        self.send_tagged_line(tag, "OK Done")
 
     def id(self, tag, *args):
-        self.send_untagged_line('NIL')
-        self.send_tagged_line(tag, 'OK ID command completed')
+        self.send_untagged_line("NIL")
+        self.send_tagged_line(tag, "OK ID command completed")
 
     def noop(self, tag, *args):
         if len(self.state_to_send) > 0:
             for line in deque(self.state_to_send):
                 self.send_untagged_line(line)
-        self.send_tagged_line(tag, 'OK NOOP completed.')
+        self.send_tagged_line(tag, "OK NOOP completed.")
 
     def check(self, tag, *args):
-        self.send_tagged_line(tag, 'OK CHECK completed.')
+        self.send_tagged_line(tag, "OK CHECK completed.")
 
     def status(self, tag, *args):
         mailbox_name = args[0]
-        data_items = ' '.join(args[1:])
+        data_items = " ".join(args[1:])
         mailbox = self.server_state.get_mailbox_messages(self.user_login, mailbox_name)
         if mailbox is None:
-            self.send_tagged_line(tag, 'NO STATUS completed.')
+            self.send_tagged_line(tag, "NO STATUS completed.")
             return
-        status_response = 'STATUS %s (' % mailbox_name
-        if 'MESSAGES' in data_items:
-            status_response += 'MESSAGES %s' % len(mailbox)
-        if 'RECENT' in data_items:
-            status_response += ' RECENT %s' % len([m for m in mailbox if 'RECENT' in m.flags])
-        if 'UIDNEXT' in data_items:
-            status_response += ' UIDNEXT %s' % (self.server_state.max_uid(self.user_login, self.user_mailbox) + 1)
-        if 'UIDVALIDITY' in data_items:
-            status_response += ' UIDVALIDITY %s' % self.uidvalidity
-        if 'UNSEEN' in data_items:
-            status_response += ' UNSEEN %s' % len([m for m in mailbox if 'UNSEEN' in m.flags])
-        status_response += ')'
+        status_response = "STATUS %s (" % mailbox_name
+        if "MESSAGES" in data_items:
+            status_response += "MESSAGES %s" % len(mailbox)
+        if "RECENT" in data_items:
+            status_response += " RECENT %s" % len([m for m in mailbox if "RECENT" in m.flags])
+        if "UIDNEXT" in data_items:
+            status_response += " UIDNEXT %s" % (
+                self.server_state.max_uid(self.user_login, self.user_mailbox) + 1
+            )
+        if "UIDVALIDITY" in data_items:
+            status_response += " UIDVALIDITY %s" % self.uidvalidity
+        if "UNSEEN" in data_items:
+            status_response += " UNSEEN %s" % len([m for m in mailbox if "UNSEEN" in m.flags])
+        status_response += ")"
         self.send_untagged_line(status_response)
-        self.send_tagged_line(tag, 'OK STATUS completed.')
+        self.send_tagged_line(tag, "OK STATUS completed.")
 
     def receive(self, tag, *args):
         [user, mailbox, to, from_, subject, content] = args
         print("Creating message with", args)
-        mail = Mail.create(
-            to=[to],
-            mail_from=from_,
-            subject=subject,
-            content=content
-        )
+        mail = Mail.create(to=[to], mail_from=from_, subject=subject, content=content)
         self.server_state.imap_receive(user, mail, mailbox)
-        self.send_tagged_line(tag, 'OK RECEIVE completed.')
+        self.send_tagged_line(tag, "OK RECEIVE completed.")
 
     def clear(self, tag, *args):
         self.server_state.mailboxes = dict()
-        self.send_tagged_line(tag, 'OK CLEAR completed.')
+        self.send_tagged_line(tag, "OK CLEAR completed.")
 
-    def printdebug(self, tag,  *args):
+    def printdebug(self, tag, *args):
         print(self.server_state.mailboxes)
-        self.send_tagged_line(tag, 'OK PRINTDEBUG completed.')
+        self.send_tagged_line(tag, "OK PRINTDEBUG completed.")
 
     def subscribe(self, tag, *args):
         mailbox_name = args[0]
         self.server_state.subscribe(self.user_login, mailbox_name)
-        self.send_tagged_line(tag, 'OK SUBSCRIBE completed.')
+        self.send_tagged_line(tag, "OK SUBSCRIBE completed.")
 
     def unsubscribe(self, tag, *args):
         mailbox_name = args[0]
         self.server_state.unsubscribe(self.user_login, mailbox_name)
-        self.send_tagged_line(tag, 'OK UNSUBSCRIBE completed.')
+        self.send_tagged_line(tag, "OK UNSUBSCRIBE completed.")
 
     def lsub(self, tag, *args):
         reference_name, mailbox_name = args
 
-        if not reference_name.endswith('.') and not mailbox_name.startswith('.'):
-            mailbox_search = '%s.%s' % (reference_name, mailbox_name)
+        if not reference_name.endswith(".") and not mailbox_name.startswith("."):
+            mailbox_search = "%s.%s" % (reference_name, mailbox_name)
         else:
             mailbox_search = reference_name + mailbox_name
 
         for found_mb_name in self.server_state.lsub(self.user_login, mailbox_search):
             self.send_untagged_line('LSUB () "." %s' % found_mb_name)
-        self.send_tagged_line(tag, 'OK LSUB completed.')
+        self.send_tagged_line(tag, "OK LSUB completed.")
 
     def create(self, tag, *args):
         mailbox_name = args[0]
         self.server_state.create_mailbox_if_not_exists(self.user_login, mailbox_name)
-        self.send_tagged_line(tag, 'OK CREATE completed.')
+        self.send_tagged_line(tag, "OK CREATE completed.")
 
     def delete(self, tag, *args):
         mailbox_name = args[0]
         self.server_state.delete_mailbox(self.user_login, mailbox_name)
-        self.send_tagged_line(tag, 'OK DELETE completed.')
+        self.send_tagged_line(tag, "OK DELETE completed.")
 
     def rename(self, tag, *args):
         old_mb, new_mb = args
         self.server_state.rename_mailbox(self.user_login, old_mb, new_mb)
-        self.send_tagged_line(tag, 'OK RENAME completed.')
+        self.send_tagged_line(tag, "OK RENAME completed.")
 
     def list(self, tag, *args):
         reference = args[0]
-        mailbox_pattern = args[1].replace('*', '.*').replace('%', '.*')
+        mailbox_pattern = args[1].replace("*", ".*").replace("%", ".*")
 
         for mb in self.server_state.list(self.user_login, reference, mailbox_pattern):
             self.send_untagged_line('LIST () "/" %s' % mb)
-        self.send_tagged_line(tag, 'OK LIST completed.')
+        self.send_tagged_line(tag, "OK LIST completed.")
 
     def error(self, tag, msg):
-        self.send_tagged_line(tag, 'BAD %s' % msg)
+        self.send_tagged_line(tag, "BAD %s" % msg)
 
     def notify_new_mail(self, uid):
         if self.idle_tag:
-            self.send_untagged_line('{uid} EXISTS'.format(uid=uid))
-            self.send_untagged_line('{uid} RECENT'.format(uid=uid))
+            self.send_untagged_line("{uid} EXISTS".format(uid=uid))
+            self.send_untagged_line("{uid} RECENT".format(uid=uid))
         else:
-            self.state_to_send.append('{uid} EXISTS'.format(uid=uid))
-            self.state_to_send.append('{uid} RECENT'.format(uid=uid))
+            self.state_to_send.append("{uid} EXISTS".format(uid=uid))
+            self.state_to_send.append("{uid} RECENT".format(uid=uid))
 
     def delay(self, tag, *args):
         self.delay_seconds = int(args[0])
-        self.send_tagged_line(tag, 'OK DELAY completed.')
+        self.send_tagged_line(tag, "OK DELAY completed.")
 
     def getquotaroot(self, tag, *args):
         arg_list = list(args)
@@ -687,9 +763,9 @@ class ImapProtocol(asyncio.Protocol):
             for message in self.server_state.get_mailbox_messages(self.user_login, arg_list[0]):
                 size += len(message.as_bytes())
 
-        self.send_untagged_line(f'QUOTAROOT {arg_list[0]} INBOX')
-        self.send_untagged_line(f'QUOTA INBOX (STORAGE {size} {self.DEFAULT_QUOTA})')
-        self.send_tagged_line(tag, 'OK GETQUOTAROOT completed.')
+        self.send_untagged_line(f"QUOTAROOT {arg_list[0]} INBOX")
+        self.send_untagged_line(f"QUOTA INBOX (STORAGE {size} {self.DEFAULT_QUOTA})")
+        self.send_tagged_line(tag, "OK GETQUOTAROOT completed.")
 
 
 class MockImapServer(object):
@@ -702,7 +778,7 @@ class MockImapServer(object):
         else:
             self.loop = loop
 
-    def receive(self, mail, imap_user=None, mailbox='INBOX'):
+    def receive(self, mail, imap_user=None, mailbox="INBOX"):
         """
         :param imap_user: str
         :type mail: Mail
@@ -718,21 +794,30 @@ class MockImapServer(object):
             return uids
 
     async def wait_state(self, state, user):
-        user_connections = [connection for connection in self._connections if connection.user_login == user]
+        user_connections = [
+            connection for connection in self._connections if connection.user_login == user
+        ]
         if len(user_connections) == 0:
             other_users = list(map(lambda c: c.user_login, self._connections))
-            raise ValueError("wait_state didn't find a connection to user %s among %s" % (user, other_users))
+            raise ValueError(
+                "wait_state didn't find a connection to user %s among %s" % (user, other_users)
+            )
         if len(user_connections) > 1:
-            raise ValueError("wait_state can't handle %d connections for user %s" % (len(user_connections), user))
+            raise ValueError(
+                "wait_state can't handle %d connections for user %s"
+                % (len(user_connections), user)
+            )
 
         await user_connections[0].wait(state)
 
     def get_connection(self, user):
         return self._server_state.get_connection(user)
 
-    def run_server(self, host='127.0.0.1', port=1143, fetch_chunk_size=0, ssl_context=None):
+    def run_server(self, host="127.0.0.1", port=1143, fetch_chunk_size=0, ssl_context=None):
         def create_protocol():
-            protocol = ImapProtocol(self._server_state, fetch_chunk_size, self.capabilities, self.loop)
+            protocol = ImapProtocol(
+                self._server_state, fetch_chunk_size, self.capabilities, self.loop
+            )
             self._connections.append(protocol)
             return protocol
 
@@ -759,19 +844,23 @@ class Mail(object):
 
     @property
     def to(self):
-        return self.email.get('To').split(', ')
+        return self.email.get("To").split(", ")
 
     @staticmethod
-    def create(to, mail_from='', subject='', content='',
-               encoding='utf-8',
-               date=None,
-               in_reply_to=None,
-               message_id=None,
-               quoted_printable=False,
-               cc=None,
-               body_subtype='plain',
-               references=None
-               ):
+    def create(
+        to,
+        mail_from="",
+        subject="",
+        content="",
+        encoding="utf-8",
+        date=None,
+        in_reply_to=None,
+        message_id=None,
+        quoted_printable=False,
+        cc=None,
+        body_subtype="plain",
+        references=None,
+    ):
         """
         :param quoted_printable: boolean
         :type to: list
@@ -787,29 +876,29 @@ class Mail(object):
         :param references: list
         """
         charset = email.charset.Charset(encoding)
-        msg = email.mime.nonmultipart.MIMENonMultipart('text', body_subtype, charset=encoding)
+        msg = email.mime.nonmultipart.MIMENonMultipart("text", body_subtype, charset=encoding)
         if quoted_printable:
             charset.body_encoding = email.charset.QP
         msg.set_payload(content, charset=charset)
         date = date or datetime.now(tz=utc)
-        msg['Return-Path'] = '<%s>' % mail_from
-        msg['Delivered-To'] = '<%s>' % ', '.join(to)
-        msg['Message-ID'] = '<%s>' % (message_id or '%s@mockimap' % str(uuid.uuid1()))
-        msg['Date'] = date.strftime('%a, %d %b %Y %H:%M:%S %z')
-        if '<' in mail_from  and '>' in mail_from or mail_from == '':
-            msg['From'] = mail_from
+        msg["Return-Path"] = "<%s>" % mail_from
+        msg["Delivered-To"] = "<%s>" % ", ".join(to)
+        msg["Message-ID"] = "<%s>" % (message_id or "%s@mockimap" % str(uuid.uuid1()))
+        msg["Date"] = date.strftime("%a, %d %b %Y %H:%M:%S %z")
+        if "<" in mail_from and ">" in mail_from or mail_from == "":
+            msg["From"] = mail_from
         else:
-            msg['From'] = '<%s>' % mail_from
-        msg['User-Agent'] = 'python3'
-        msg['MIME-Version'] = '1.0'
-        msg['To'] = ', '.join(to)
-        msg['Subject'] = Header(subject, encoding)
+            msg["From"] = "<%s>" % mail_from
+        msg["User-Agent"] = "python3"
+        msg["MIME-Version"] = "1.0"
+        msg["To"] = ", ".join(to)
+        msg["Subject"] = Header(subject, encoding)
         if in_reply_to is not None:
-            msg['In-Reply-To'] = '<%s>' % in_reply_to
+            msg["In-Reply-To"] = "<%s>" % in_reply_to
         if cc is not None:
-            msg['Cc'] = ', '.join(cc)
+            msg["Cc"] = ", ".join(cc)
         if references is not None:
-            ' '.join(['<%s>' % ref for ref in references])
+            " ".join(["<%s>" % ref for ref in references])
 
         return Mail(msg, date=date)
 
@@ -843,7 +932,7 @@ class Mail(object):
 
 #         return imap_client
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     server = MockImapServer().run_server()
     loop.run_forever()
