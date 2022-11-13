@@ -13,60 +13,66 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
 ## Basic Usage
 
-### Install
+1. Install:
 
-    pip install mmuxer
+        pip install mmuxer
 
-### Running
+2. Create configuration file:
 
-In order to benefit from Mail Muxer, you will probably need a server, so that it can continuously monitor your IMAP box, and take actions accordingly.
+        ```yaml
+        rules:
+          - move_to: receipts
+            condition:
+              ANY:
+                - FROM: some_store@ok.ok
+                - FROM: some_other_store@store.net
+          - move_to: important
+            condition:
+              SUBJECT: important
+          - condition:
+              FROM: spammer@example.com
+            actions:
+              - delete
 
-    mmuxer --config-file config.yaml monitor
+        settings:
+          server: imap.email.net
+          username: me@email.net
+          password: secret
+        ```
 
-You can also run it as a one-time command, so that it takes action on all the messages of your inbox:
+3. Check your configuration:
 
-    mmuxer --config-file config.yaml tidy
+       mmuxer --config-file config.yaml check
 
-In order to check that your configuration is valid, and that you can connect to your IMAP server:
+4. Check your folders:
 
-    mmuxer --config-file config.yaml check
+       mmuxer --config-file config.yaml folder compare-destinations
 
-Finally, Mail Muxer includes tools to manage your IMAP folder, see the [Manage IMAP folders](#Manage-IAMP-folders) section
+5. Monitor your inbox:
 
+       mmuxer --config-file config.yaml monitor
 
-### Configuration
+6. Or apply on all messages of a given IMAP folder:
 
-Mail Muxer takes a configuration file as input, that will contain the settings to connect to your IMAP server, and the rules you want to apply.
+       mmuxer --config-file config.yaml tidy --folder FOLDER
 
-Example:
-```yaml
-rules:
-  - move_to: receipts
-    condition:
-      ANY:
-        - FROM: some_store@ok.ok
-        - FROM: some_other_store@store.net
-  - move_to: important
-    condition:
-      SUBJECT: important
-  - condition:
-      FROM: spammer@example.com
-    actions:
-      - delete
-
-settings:
-  server: imap.email.net
-  username: me@email.net
-  password: secret
-```
-
-Note that the values in the settings section can also be provided as environemnt variables, or in a `.env` file.
 
 ### Note on SSL
 
 If you get SSL erros while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.
 
+### Python compatibility
+
+This program should work with Python >= 3.8.
+
 ## Advanced usage
+
+### Configuration
+
+Mail Muxer takes a configuration file as input, that will contain the settings to connect to your IMAP server, and the rules you want to apply.
+
+
+Note that the values in the settings section can also be provided as environemnt variables, or in a `.env` file.
 
 ### Conditions
 
@@ -211,4 +217,9 @@ Don't hesitate to ask, or make a pull request !
 
 ## Credit
 
-This program relies on the mock IMAP server from [aioimaplib](https://github.com/bamthomas/aioimaplib) for it's tests, many thanks to them !
+This program relies on
+- the [imap-tools](https://github.com/ikvk/imap_tools) library for everything involving IMAP
+- the mock IMAP server from [aioimaplib](https://github.com/bamthomas/aioimaplib) for it's tests
+- the ever excellent Typer and Pydantic libs
+
+Many thanks to them !

@@ -7,7 +7,7 @@ authors = [
 ]
 license = {text = "AGPL-3.0"}
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 
 dependencies = [
   "typer[all]>=0.7, <0.8",
@@ -17,6 +17,9 @@ dependencies = [
   "certifi",
 ]
 
+classfiers = [
+  "Topic :: Communications :: Email :: Filters"
+]
 [project.scripts]
 mmuxer = "mmuxer.__main__:app"
 
