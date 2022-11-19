@@ -4,9 +4,15 @@ from rich.pretty import Node, pretty_repr
 
 from ..config_state import state
 
+
+def setup_callback(config_file: typer.FileText = typer.Option(...)):
+    state.parse_config(config_file)
+    state.create_mailbox()
+
+
 app = typer.Typer(
     name="folder",
-    callback=state.create_mailbox,
+    callback=setup_callback,
     no_args_is_help=True,
     help="Various IMAP folder helpers.",
 )
@@ -21,39 +27,39 @@ def print_with_name(name, value):
     print(render_with_name(name, value))
 
 
-@app.command()
+@app.command(rich_help_panel="Generic commands")
 def list():
     """List existing folders."""
     folder_names = sorted((f.name for f in state.mailbox.folder.list()))
     print_with_name("folder_names", folder_names)
 
 
-@app.command()
+@app.command(rich_help_panel="Generic commands")
 def create(name: str):
     """Create a new folder."""
     state.mailbox.folder.create(name)
 
 
-@app.command()
+@app.command(rich_help_panel="Generic commands")
 def delete(name: str):
     """Delete a folder."""
     state.mailbox.folder.delete(name)
 
 
-@app.command()
+@app.command(rich_help_panel="Generic commands")
 def rename(old_name: str, new_name: str):
     """Rename a folder."""
     state.mailbox.folder.rename(old_name, new_name)
 
 
-@app.command()
+@app.command(rich_help_panel="Helper commands")
 def show_destinations():
     """List destinations folders from your configuration."""
     destinations = sorted({dest for rule in state.rules for dest in rule.destinations()})
     print_with_name("[bold]destinations", destinations)
 
 
-@app.command()
+@app.command(rich_help_panel="Helper commands")
 def compare_destinations():
     """Compare existing folders with destinations from the configuration"""
     destinations = {dest for rule in state.rules for dest in rule.destinations()}
@@ -66,7 +72,7 @@ def compare_destinations():
     print_with_name("[bold]destinations_without_folder", destinations_without_folder)
 
 
-@app.command()
+@app.command(rich_help_panel="Helper commands")
 def create_missing_folders():
     """Create missing folders."""
     destinations = {dest for rule in state.rules for dest in rule.destinations()}

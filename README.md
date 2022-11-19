@@ -40,23 +40,23 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
     ```
 3. Check your configuration:
 
-       mmuxer --config-file config.yaml check
+       mmuxer check --config-file config.yaml
 
 4. Check your folders:
 
-       mmuxer --config-file config.yaml folder compare-destinations
+       mmuxer folder --config-file config.yaml compare-destinations
 
 5. Monitor your inbox:
 
-       mmuxer --config-file config.yaml run monitor
+       mmuxer monitor --config-file config.yaml
 
 6. Or apply on all messages of a given IMAP folder:
 
-       mmuxer --config-file config.yaml run tidy --folder FOLDER
+       mmuxer tidy --config-file config.yaml --folder FOLDER
 
 7. Finally, to get help on a given command, add a `--help` to it, e.g.
 
-       mmuxer --config-file config.yaml run --help
+       mmuxer monitor --help
 
 ### Note on SSL
 
@@ -182,7 +182,7 @@ rules:
 
 Run the following to see the available commands:
 
-    mmuxer --config-file config.yaml folder --help
+    mmuxer folder --help
 
 The `compare-destinations` command ispecially useful, as it will compare the move destinations of your config file with the IMAP folders on your server, and display the differences (allowing you to spot mistakes in your configuration, or missing folders on your server).
 

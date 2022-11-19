@@ -41,6 +41,7 @@ class State:
         self.actions: dict[str, Action] = default_actions
 
     def create_mailbox(self):
+        logger.debug(f"Connecting to {self.settings.server} with {self.settings.username}")
         ssl_context = make_ssl_context(self.settings.ssl_ciphers)
         self._mailbox = MailBox(self.settings.server, ssl_context=ssl_context).login(
             self.settings.username, self.settings.password
