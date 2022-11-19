@@ -1,3 +1,5 @@
+import logging
+
 import typer
 from imap_tools import AND
 
@@ -10,6 +12,7 @@ app = typer.Typer(
     no_args_is_help=True,
     short_help="Execute the configured rules.",
 )
+logger = logging.getLogger(__name__)
 
 
 @app.command()
@@ -39,8 +42,13 @@ def monitor(
     if folder is not None:
         box.folder.set(folder)
     while True:
-        responses = box.idle.wait(timeout=60)
-        if responses:
-            for msg in box.fetch(AND(seen=False), mark_seen=False):
-                print(f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']")
-                apply_list(state.rules, box, msg, dry_run)
+        try:
+            responses = box.idle.wait(timeout=60)
+            if responses:
+                for msg in box.fetch(AND(seen=False), mark_seen=False):
+                    print(f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']")
+                    apply_list(state.rules, box, msg, dry_run)
+        except Exception:
+            logger.exception("An error occured, relaunching...")
+            state.create_mailbox()
+            box = state.mailbox
