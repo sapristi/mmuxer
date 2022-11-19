@@ -48,8 +48,6 @@ def check(config_file: typer.FileText = typer.Option(...)):
     state.create_mailbox()
     pprint(state.rules)
 
-    # app.add_typer(run_app)
-
 
 app.add_typer(folder_app, rich_help_panel="Util commands")
 

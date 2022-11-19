@@ -212,6 +212,8 @@ The current implementation is mostly feature complete for me, but here are some 
   - move destination based on regex match group
   - automatic folder creation
   - anything else ?
+- hot-reload config file
+- re-configure (or execute actions) by sending emails
 - support OAuth / Gmail (I'm not sure how feasible that would be).
 
 Don't hesitate to ask, or make a pull request !
