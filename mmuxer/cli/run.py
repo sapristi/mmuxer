@@ -1,3 +1,4 @@
+import imaplib
 import logging
 
 import typer
@@ -51,7 +52,11 @@ def monitor(
                 for msg in box.fetch(AND(seen=False), mark_seen=False):
                     print(f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']")
                     apply_list(state.rules, box, msg, dry_run)
+        except imaplib.IMAP4.abort:
+            logger.warning("IMAP connection aborted, reconnecting ")
+            state.create_mailbox()
+            box = state.mailbox
         except Exception:
-            logger.exception("An error occured, relaunching...")
+            logger.exception("An error occured, reconnecting...")
             state.create_mailbox()
             box = state.mailbox

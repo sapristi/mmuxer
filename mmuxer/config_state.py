@@ -46,6 +46,7 @@ class State:
         self._mailbox = MailBox(self.settings.server, ssl_context=ssl_context).login(
             self.settings.username, self.settings.password
         )
+        logger.info(f"Connected to {self.settings.server} with {self.settings.username}")
 
     def parse_config(self, config_raw):
         try:
