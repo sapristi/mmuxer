@@ -1,9 +1,9 @@
+import base64
 import imaplib
+import json
 from pathlib import Path
 
 import pytest
-
-# from .imap_server import MockImapServer
 from imap_tools import BaseMailBox
 
 
@@ -34,9 +34,25 @@ def data():
 
 @pytest.fixture
 def make_message(mailbox):
-    def inner(
-        user, box, to="to@ok.com", from_="from@ok.com", subject="subject", content="content"
-    ):
-        mailbox._get_mailbox_client().xatom("receive", "u", "INBOX", to, from_, subject, content)
+    def inner(user="u", box="INBOX", **kwargs):
+        if "to" in kwargs:
+            assert isinstance(kwargs["to"], list), "`to` must be a list"
+        payload = (
+            base64.b32encode(
+                json.dumps(
+                    {
+                        **{
+                            "to": ["to@ok.com"],
+                            "from_": "from@ok.com",
+                            "subject": "subject",
+                        },
+                        **kwargs,
+                    }
+                ).encode()
+            )
+            .replace(b"=", b"a")
+            .decode()
+        )
+        mailbox._get_mailbox_client().xatom("receive", user, box, payload)
 
     return inner

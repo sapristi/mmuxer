@@ -15,8 +15,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import asyncio
+import base64
 import email
+import email.mime.multipart
 import email.mime.nonmultipart
+import json
 import logging
 import re
 import sys
@@ -27,6 +30,7 @@ from datetime import datetime, timedelta
 from email._policybase import Compat32
 from email.header import Header
 from email.message import Message
+from email.mime.text import MIMEText
 from functools import update_wrapper
 from math import ceil
 from operator import attrgetter
@@ -93,7 +97,6 @@ class ServerState(object):
         return len(self.mailboxes[user][mailbox])
 
     def login(self, user_login, protocol):
-        print("LOGIN", user_login)
         if user_login not in self.mailboxes:
             self.mailboxes[user_login] = dict()
         for mb in self.DEFAULT_MAILBOXES:
@@ -102,8 +105,6 @@ class ServerState(object):
             self.connections[user_login] = protocol
         if user_login not in self.subcriptions:
             self.subcriptions[user_login] = set()
-
-        print("INITIAL BOXES", self.mailboxes)
 
     def create_mailbox_if_not_exists(self, user_login, user_mailbox):
         if user_mailbox not in self.mailboxes[user_login]:
@@ -303,12 +304,10 @@ class ImapProtocol(asyncio.Protocol):
 
     @critical_section(next_state=AUTH)
     def login(self, tag, *args):
-        print("LOGIN START")
         self.user_login = args[0]
         self.server_state.login(self.user_login, self)
         self.send_untagged_line("CAPABILITY IMAP4rev1 %s" % self.capabilities)
         self.send_tagged_line(tag, "OK LOGIN completed")
-        print("LOGIN END", self.user_login)
 
     @critical_section(next_state=LOGOUT)
     def logout(self, tag, *args):
@@ -442,7 +441,6 @@ class ImapProtocol(asyncio.Protocol):
         ]
 
     def store(self, tag, *args):
-        print("STORE", args)
         arg_list = list(args)
         if arg_list[0] == "uid":
             arg_list = list(args[1:])
@@ -450,16 +448,14 @@ class ImapProtocol(asyncio.Protocol):
         flags = (
             " ".join(arg_list[2:]).strip("()").split()
         )  # only support one flag and do not handle replacement (without + sign)
-        print("FLAGGING", uid, "with", flags)
         for message in self.server_state.get_mailbox_messages(self.user_login, self.user_mailbox):
-            print("MESSAGE", message, message.uid)
             if message.uid == uid:
                 if arg_list[1] == "+FLAGS":
                     message.flags.extend(flags)
                 elif arg_list[1] == "-FLAGS":
                     message.flags = list(set(message.flags) - set(flags))
                 else:
-                    print("WTF", args_list[1])
+                    print("WTF", arg_list[1])
                 self.send_untagged_line(
                     "{uid} FETCH (UID {uid} FLAGS ({flags}))".format(
                         uid=uid, flags=" ".join(message.flags)
@@ -540,6 +536,7 @@ class ImapProtocol(asyncio.Protocol):
                 response += ("FLAGS (%s)" % " ".join(message.flags)).encode()
         response = response.strip(b" ")
         response += b")"
+        print("RESP", response.decode())
         return response
 
     def append(self, tag, *args):
@@ -682,9 +679,10 @@ class ImapProtocol(asyncio.Protocol):
         self.send_tagged_line(tag, "OK STATUS completed.")
 
     def receive(self, tag, *args):
-        [user, mailbox, to, from_, subject, content] = args
-        print("Creating message with", args)
-        mail = Mail.create(to=[to], mail_from=from_, subject=subject, content=content)
+        [user, mailbox, payload] = args
+        kwargs = json.loads(base64.b32decode(payload.replace("a", "=")))
+        print("CREATE MSG kwargs", kwargs)
+        mail = Mail.create(**{k: v for k, v in kwargs.items() if v is not None})
         self.server_state.imap_receive(user, mail, mailbox)
         self.send_tagged_line(tag, "OK RECEIVE completed.")
 
@@ -849,9 +847,10 @@ class Mail(object):
     @staticmethod
     def create(
         to,
-        mail_from="",
+        from_="",
         subject="",
-        content="",
+        content_text=None,
+        content_html=None,
         encoding="utf-8",
         date=None,
         in_reply_to=None,
@@ -865,7 +864,7 @@ class Mail(object):
         :param quoted_printable: boolean
         :type to: list
         :type cc: list
-        :type mail_from: str
+        :type from_: str
         :type subject: unicode
         :type content: unicode
         :type encoding: str
@@ -876,22 +875,29 @@ class Mail(object):
         :param references: list
         """
         charset = email.charset.Charset(encoding)
-        msg = email.mime.nonmultipart.MIMENonMultipart("text", body_subtype, charset=encoding)
-        if quoted_printable:
-            charset.body_encoding = email.charset.QP
-        msg.set_payload(content, charset=charset)
+        if not content_html or not content_text:
+            content = content_html or content_text
+            msg = email.mime.nonmultipart.MIMENonMultipart("text", body_subtype, charset=encoding)
+            if quoted_printable:
+                charset.body_encoding = email.charset.QP
+            msg.set_payload(content, charset=charset)
+        else:
+            msg = email.mime.multipart.MIMEMultipart("alternative")
+            msg.attach(MIMEText(content_text, "plain"))
+            msg.attach(MIMEText(content_html, "html"))
         date = date or datetime.now(tz=utc)
-        msg["Return-Path"] = "<%s>" % mail_from
+        msg["Return-Path"] = "<%s>" % from_
         msg["Delivered-To"] = "<%s>" % ", ".join(to)
         msg["Message-ID"] = "<%s>" % (message_id or "%s@mockimap" % str(uuid.uuid1()))
         msg["Date"] = date.strftime("%a, %d %b %Y %H:%M:%S %z")
-        if "<" in mail_from and ">" in mail_from or mail_from == "":
-            msg["From"] = mail_from
+        if "<" in from_ and ">" in from_ or from_ == "":
+            msg["From"] = from_
         else:
-            msg["From"] = "<%s>" % mail_from
+            msg["From"] = "<%s>" % from_
         msg["User-Agent"] = "python3"
         msg["MIME-Version"] = "1.0"
         msg["To"] = ", ".join(to)
+        print("TO MESSAGE", msg["To"])
         msg["Subject"] = Header(subject, encoding)
         if in_reply_to is not None:
             msg["In-Reply-To"] = "<%s>" % in_reply_to

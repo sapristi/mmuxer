@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from typing import ForwardRef, List, Union
 
@@ -20,10 +21,11 @@ class IBaseCondition(BaseModel):
 
     def eval(self, message: MailMessage) -> bool:
         value = self.get_value(message)
+        logging.debug("Eval %s <%s> %s", self.get_operand(), self.operator, value)
         if self.operator == ComparisonOperator.CONTAINS:
-            return self.get_operand() in value
+            return self.get_operand().lower() in value.lower()
         if self.operator == ComparisonOperator.EQUALS:
-            return self.get_operand() == value
+            return self.get_operand().lower() == value.lower()
         raise Exception(f"Unhandled operator {self.operator}")
 
 
@@ -44,7 +46,7 @@ class To(IBaseCondition):
     TO: str
 
     def get_value(self, message: MailMessage):
-        return message.to
+        return " ".join(message.to)
 
     def get_operand(self) -> str:
         return self.TO
@@ -64,6 +66,21 @@ class Subject(IBaseCondition):
 
     def __rich_repr__(self):
         yield self.operator.name, self.SUBJECT
+
+
+class Body(IBaseCondition):
+    BODY: str
+
+    def get_value(self, message: MailMessage):
+        print("MSG TEXT", message.text)
+        print("MSG HTML", message.html)
+        return message.text + message.html
+
+    def get_operand(self) -> str:
+        return self.BODY
+
+    def __rich_repr__(self):
+        yield self.operator.name, self.BODY
 
 
 BaseCondition = Union[From, To, Subject]
