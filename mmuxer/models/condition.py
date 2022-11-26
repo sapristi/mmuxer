@@ -72,8 +72,6 @@ class Body(IBaseCondition):
     BODY: str
 
     def get_value(self, message: MailMessage):
-        print("MSG TEXT", message.text)
-        print("MSG HTML", message.html)
         return message.text + message.html
 
     def get_operand(self) -> str:
