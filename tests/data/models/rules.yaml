@@ -27,3 +27,4 @@
   move_to: lists
   actions:
     - delete
+    - mark_read
