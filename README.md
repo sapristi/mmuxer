@@ -79,11 +79,13 @@ Note that the values in the settings section can also be provided as environemnt
 
 #### Base conditions
 
-The supported fields for the conditions are `TO`, `FROM` and `SUBJECT`.
+The supported fields for the conditions are `TO`, `FROM`, `SUBJECT` and `BODY`.
 
 The comporison operators between the value of the email and the provided value are:
 - `CONTAINS`: matches if the email value contains the provided value **(default)**
 - `EQUALS`: matches if the email value is exactly the provided value
+
+**Note***: comparisons are case-insensitive.
 
 #### Composed conditions
 

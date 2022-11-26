@@ -29,7 +29,6 @@ def tidy(
     print(f"{counter} messages parsed.")
 
 
-# @app.command()
 def monitor(
     folder: str = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
