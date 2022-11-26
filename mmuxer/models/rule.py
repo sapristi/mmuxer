@@ -24,9 +24,13 @@ class Rule(BaseModel):
     def _actions(self) -> List[Action]:
         from ..config_state import state
 
-        actions_str = [action for action in self.actions if isinstance(action, str)]
-        actions_inst = [action for action in self.actions if isinstance(action, Action)]
-        res = [*[state.actions[action_str] for action_str in actions_str], *actions_inst]
+        res = []
+        for action in self.actions:
+            if isinstance(action, str):
+                res.append(state.actions[action])
+            else:
+                res.append(action)
+
         if self.move_to is not None:
             res.append(MoveAction(dest=self.move_to))
         return res
