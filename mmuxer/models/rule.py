@@ -16,8 +16,8 @@ class Rule(BaseModel):
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.condition.eval(message):
-            if self.move_to is not None:
-                MoveAction(dest=self.move_to).apply(mailbox, message, dry_run)
+            for action in self._actions():
+                action.apply(mailbox, message, dry_run)
             return True
         return False
 
