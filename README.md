@@ -89,7 +89,7 @@ The comporison operators between the value of the email and the provided value a
 
 #### Composed conditions
 
-It is also possible to compose conditions with boolean operators: 
+It is also possible to compose conditions with boolean operators:
  - `ALL`: takes as input a list of conditions
  - `ANY`: takes as input a list of conditions
  - `NOT`: takes as input a single condition
