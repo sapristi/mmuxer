@@ -75,17 +75,21 @@ This program should work with Python >= 3.8.
 
 The current implementation is mostly feature complete for me, but here are some features that could be implemented:
 
-- add a `REGEX` condition operator
-- support more fields for conditions
-- add more actions:
+- Improve `tidy` operation:
+  - make `tidy` operation more performant by using IMAP search features
+  - allow to run `tidy` on many / all folders
+- Better conditions:
+  - add a `REGEX` operator (although not compatible with IMAP search)
+  - support more fields
+- Add more actions:
   - tag emails
   - forward emails
   - move destination based on regex match group
   - automatic folder creation
   - anything else ?
-- hot-reload config file
-- re-configure (or execute actions) by sending emails
-- support OAuth / Gmail (I'm not sure how feasible that would be).
+- Hot-reload config file
+- Re-configure (or execute actions) by sending emails
+- Support OAuth / Gmail (I'm not sure how feasible that would be).
 
 Don't hesitate to ask, or make a pull request !
 
