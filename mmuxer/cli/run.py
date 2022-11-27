@@ -49,7 +49,9 @@ def monitor(
             responses = box.idle.wait(timeout=60)
             if responses:
                 for msg in box.fetch(AND(seen=False), mark_seen=False):
-                    print(f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']")
+                    logger.info(
+                        f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
+                    )
                     apply_list(state.rules, box, msg, dry_run)
         except imaplib.IMAP4.abort:
             logger.warning("IMAP connection aborted, reconnecting ")
