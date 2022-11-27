@@ -1,0 +1,13 @@
+[Unit]
+Description=Mail Muxer
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/mmuxer monitor --config-file %h/.config/mmuxer/config.yaml
+NoNewPrivileges=true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

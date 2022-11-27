@@ -30,7 +30,11 @@ def main_callback(log_level: LogLevel = typer.Option("info", case_sensitive=Fals
         level=log_level.name,
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(rich_tracebacks=True, show_time=False)],
+        handlers=[
+            RichHandler(
+                rich_tracebacks=True, show_time=False, show_path=(log_level == LogLevel.DEBUG)
+            )
+        ],
     )
 
 

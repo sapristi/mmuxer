@@ -1,0 +1,15 @@
+[Unit]
+Description=Mail Muxer
+After=network-online.target
+Wants=network-online.target
+After=nss-lookup.target
+
+[Service]
+User=mopidy
+PermissionsStartOnly=true
+ExecStart=/usr/bin/mmuxer monitor --config-file /etc/mmuxer/config.yaml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
