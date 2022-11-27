@@ -69,7 +69,7 @@ This program should work with Python >= 3.8.
 ## Going further on
 
 - [Advanced usage](./docs/advanced_usage.md)
-- Use with docker/systemd: see [doc](./services/README.md)
+- Use with docker/systemd: see [doc](./service/README.md)
 
 ## What's next
 
