@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def tidy(
+    config_file: typer.FileText = typer.Option(...),
     folder: str = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
-    config_file: typer.FileText = typer.Option(...),
 ):
     """Run once, on all messages of the INBOX (or the given folder)."""
     state.parse_config(config_file)
@@ -30,9 +30,9 @@ def tidy(
 
 
 def monitor(
+    config_file: typer.FileText = typer.Option(...),
     folder: str = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
-    config_file: typer.FileText = typer.Option(...),
 ):
     """Monitor mailbox, and apply rules on unseen messages."""
     state.parse_config(config_file)
