@@ -1,12 +1,17 @@
+from pathlib import Path
+
 import typer
 from rich import print
 from rich.pretty import Node, pretty_repr
 
-from ..config_state import state
+from mmuxer.config_state import state
+from mmuxer.utils import config_file_typer_option
 
 
-def setup_callback(config_file: typer.FileText = typer.Option(...)):
-    state.parse_config(config_file)
+def setup_callback(
+    config_file: Path = config_file_typer_option,
+):
+    state.load_config_file(config_file)
     state.create_mailbox()
 
 

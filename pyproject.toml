@@ -15,6 +15,7 @@ dependencies = [
   "pyyaml",
   "imap-tools",
   "certifi",
+  "watchfiles >= 0.18"
 ]
 
 classifiers = [
@@ -38,7 +39,6 @@ dev = [
     "pytest-bg-process",
     "pytz",
 ]
-
 
 [tool.setuptools]
 include-package-data = true
