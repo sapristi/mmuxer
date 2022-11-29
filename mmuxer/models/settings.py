@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     username: str
     password: str
     ssl_ciphers: Optional[str] = None
+    debug_file_watcher: bool = False
 
     class Config:
         env_file = ".env"

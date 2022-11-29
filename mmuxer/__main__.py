@@ -1,6 +1,7 @@
 import enum
 import logging
 import os
+from pathlib import Path
 
 import typer
 from rich.logging import RichHandler
@@ -11,6 +12,7 @@ from .cli.folder import app as folder_app
 from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
 from .config_state import state
+from .utils import config_file_typer_option
 
 
 class OrderCommands(TyperGroup):
@@ -52,9 +54,9 @@ app.command(rich_help_panel="Main commands")(tidy_cmd)
 
 
 @app.command(rich_help_panel="Util commands")
-def check(config_file: typer.FileText = typer.Option(...)):
+def check(config_file: Path = config_file_typer_option):
     """Load the config and connect to the IMAP server."""
-    state.parse_config(config_file)
+    state.load_config_file(config_file)
     state.create_mailbox()
     pprint(state.rules)
 
