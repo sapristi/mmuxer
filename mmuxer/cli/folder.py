@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import typer
 from rich import print
 from rich.pretty import Node, pretty_repr
@@ -5,8 +7,10 @@ from rich.pretty import Node, pretty_repr
 from ..config_state import state
 
 
-def setup_callback(config_file: typer.FileText = typer.Option(...)):
-    state.parse_config(config_file)
+def setup_callback(
+    config_file: Path = typer.Option(..., exists=True, dir_okay=False, readable=True),
+):
+    state.load_config_file(config_file)
     state.create_mailbox()
 
 

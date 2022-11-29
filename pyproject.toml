@@ -38,7 +38,9 @@ dev = [
     "pytest-bg-process",
     "pytz",
 ]
-
+watch = [
+    "watchfiles >= 0.18"
+]
 
 [tool.setuptools]
 include-package-data = true

@@ -1,6 +1,7 @@
 import enum
 import logging
 import os
+from pathlib import Path
 
 import typer
 from rich.logging import RichHandler
@@ -52,9 +53,9 @@ app.command(rich_help_panel="Main commands")(tidy_cmd)
 
 
 @app.command(rich_help_panel="Util commands")
-def check(config_file: typer.FileText = typer.Option(...)):
+def check(config_file: Path = typer.Option(..., exists=True, dir_okay=False, readable=True)):
     """Load the config and connect to the IMAP server."""
-    state.parse_config(config_file)
+    state.load_config_file(config_file)
     state.create_mailbox()
     pprint(state.rules)
 

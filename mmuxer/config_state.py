@@ -2,6 +2,7 @@ import logging
 import os
 import ssl
 import sys
+from pathlib import Path
 from typing import List
 
 import certifi
@@ -34,11 +35,29 @@ default_actions = {
 
 
 class State:
+    __slots__ = ("_settings", "_rules", "_mailbox", "_config_file", "actions")
+
     def __init__(self):
         self._settings = None
         self._rules = None
         self._mailbox = None
+        self._config_file = None
         self.actions: dict[str, Action] = default_actions
+
+    def load_config_file(self, config_file: Path):
+        self._config_file = config_file
+        self._parse_config_file()
+
+    def reload_config_file(self):
+        current_state = {key: getattr(self, key) for key in self.__slots__}
+        try:
+            self._parse_config_file()
+        except Exception:
+            logger.error("Failed loading new configuration, reverting to previous configuration.")
+            for key, value in current_state.items():
+                setattr(self, key, value)
+            return
+        logger.info("Succesfuly parsed new configuration.")
 
     def create_mailbox(self):
         logger.debug(f"Connecting to {self.settings.server} with {self.settings.username}")
@@ -48,7 +67,8 @@ class State:
         )
         logger.info(f"Connected to {self.settings.server} with {self.settings.username}")
 
-    def parse_config(self, config_raw):
+    def _parse_config_file(self):
+        config_raw = self.config_file.read_text()
         try:
             config_dict = yaml.safe_load(config_raw)
         except Exception:
@@ -99,6 +119,12 @@ class State:
                     logger.error(exc)
                     sys.exit(1)
             self._rules = parsed_rules
+
+    @property
+    def config_file(self) -> Path:
+        if self._config_file is None:
+            raise Exception("Uninitialized config_file")
+        return self._config_file
 
     @property
     def settings(self) -> Settings:
