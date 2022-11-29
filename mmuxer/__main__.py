@@ -1,5 +1,6 @@
 import enum
 import logging
+import os
 
 import typer
 from rich.logging import RichHandler
@@ -26,15 +27,20 @@ class LogLevel(enum.Enum):
 
 
 def main_callback(log_level: LogLevel = typer.Option("info", case_sensitive=False)):
+    if os.isatty(0):
+        handler = RichHandler(
+            rich_tracebacks=True, show_time=False, show_path=(log_level == LogLevel.DEBUG)
+        )
+    else:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter("%(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+
     logging.basicConfig(
         level=log_level.name,
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[
-            RichHandler(
-                rich_tracebacks=True, show_time=False, show_path=(log_level == LogLevel.DEBUG)
-            )
-        ],
+        handlers=[handler],
     )
 
 
