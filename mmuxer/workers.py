@@ -57,6 +57,5 @@ class WatcherWorker(Thread):
             state.config_file,
             force_polling=True,
             poll_delay_ms=1000,
-            debug=state.settings.debug_file_watcher,
         ):
             flag.set()
