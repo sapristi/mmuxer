@@ -24,8 +24,9 @@ class BaseAction(BaseModel):
         pass
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
-        logger.info(self.format(message))
-        if not dry_run:
+        if dry_run:
+            logger.info("%s [DRY_RUN]", self.format(message))
+        else:
             logger.info(self.format(message))
             self._apply(mailbox, message)
 
