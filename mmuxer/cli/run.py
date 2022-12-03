@@ -34,10 +34,16 @@ def monitor(
     config_file: Path = config_file_typer_option,
     folder: str = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
+    auto_reload: bool = typer.Option(
+        False, help="Auto-reload config file on modification (EXPERIMENTAL)"
+    ),
 ):
     """Monitor mailbox, and apply rules on unseen messages."""
     state.load_config_file(config_file)
     state.create_mailbox()
 
-    MonitorWorker(folder, dry_run).start()
-    WatcherWorker().start()
+    if auto_reload:
+        MonitorWorker(folder, dry_run).start()
+        WatcherWorker().start()
+    else:
+        MonitorWorker(folder, dry_run).run()
