@@ -29,7 +29,7 @@ class MonitorWorker(Thread):
                 state.reload_config_file()
                 flag.clear()
             try:
-                responses = box.idle.wait(timeout=2)
+                responses = box.idle.wait(timeout=state.settings.imap_wait_timeout)
                 if responses:
                     for msg in box.fetch(AND(seen=False), mark_seen=False):
                         logger.info(

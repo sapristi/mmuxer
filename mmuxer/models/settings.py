@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     password: str
     ssl_ciphers: Optional[str] = None
     debug_file_watcher: bool = False
+    imap_wait_timeout: int = 60
 
     class Config(BaseConfig):
         pass
