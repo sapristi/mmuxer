@@ -12,7 +12,7 @@ def in_container():
 
 class BaseConfig:
     env_file = ".env"
-    secrets_dir: str | None = None
+    secrets_dir: Optional[str] = None
 
 
 if in_container():
