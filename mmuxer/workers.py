@@ -32,6 +32,7 @@ class MonitorWorker(Thread):
                 responses = box.idle.wait(timeout=state.settings.imap_wait_timeout)
                 if responses:
                     for msg in box.fetch(AND(seen=False), mark_seen=False):
+                        msg.associated_folder = self.folder
                         logger.info(
                             f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
                         )
