@@ -23,7 +23,12 @@ class BaseAction(BaseModel):
     def format(self, message):
         pass
 
+    def skip(self, message):
+        return False
+
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
+        if self.skip(message):
+            logger.debug("SKIP %s", self.format(message))
         if dry_run:
             logger.info("%s [DRY_RUN]", self.format(message))
         else:
@@ -34,6 +39,9 @@ class BaseAction(BaseModel):
 class MoveAction(BaseAction):
     action: Literal["move"] = "move"
     dest: str
+
+    def skip(self, message):
+        return message.associated_folder == self.dest
 
     def _apply(self, mailbox: BaseMailBox, message: MailMessage):
         mailbox.move(message.uid, self.dest)

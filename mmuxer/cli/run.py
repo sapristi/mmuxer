@@ -24,6 +24,7 @@ def tidy(
         box.folder.set(folder)
     counter = 0
     for msg in box.fetch(bulk=True):
+        msg.associated_folder = folder
         apply_list(state.rules, box, msg, dry_run)
         counter += 1
     print()
