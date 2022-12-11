@@ -29,6 +29,7 @@ class BaseAction(BaseModel):
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
         if self.skip(message):
             logger.debug("SKIP %s", self.format(message))
+            return
         if dry_run:
             logger.info("%s [DRY_RUN]", self.format(message))
         else:
