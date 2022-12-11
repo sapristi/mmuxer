@@ -42,7 +42,7 @@ class MoveAction(BaseAction):
     dest: str
 
     def skip(self, message):
-        return message.associated_folder == self.dest
+        return getattr(message, "associated_folder", None) == self.dest
 
     def _apply(self, mailbox: BaseMailBox, message: MailMessage):
         mailbox.move(message.uid, self.dest)
