@@ -103,6 +103,12 @@ class Body(IBaseCondition):
 
 BaseCondition = Union[From, To, Subject]
 
+
+def is_base_condition(obj):
+    """Useful for isinstance tests with python < 3.10"""
+    return isinstance(obj, From) or isinstance(obj, To) or isinstance(obj, Subject)
+
+
 All = ForwardRef("All")  # type: ignore
 Any = ForwardRef("Any")  # type: ignore
 Not = ForwardRef("Not")  # type: ignore

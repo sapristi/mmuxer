@@ -3,14 +3,14 @@ from typing import List, Literal, Union
 import boolean
 
 from mmuxer.models.common import BaseModel
-from mmuxer.models.condition import All, Any, BaseCondition, Condition, Not
+from mmuxer.models.condition import All, Any, BaseCondition, Condition, Not, is_base_condition
 
 algebra = boolean.BooleanAlgebra()
 Clause = Union[algebra.Symbol, algebra.NOT, algebra.OR, algebra.AND]
 
 
 def remove_singleton_conditions(condition: Condition) -> Condition:
-    if isinstance(condition, BaseCondition):
+    if is_base_condition(condition):
         return condition
     elif isinstance(condition, Not):
         return Not(NOT=remove_singleton_conditions(condition.NOT))
@@ -27,7 +27,7 @@ def remove_singleton_conditions(condition: Condition) -> Condition:
 
 
 def parse_condition(condition: Condition) -> Clause:
-    if isinstance(condition, BaseCondition):
+    if is_base_condition(condition):
         return algebra.Symbol(condition)
     elif isinstance(condition, Not):
         return algebra.NOT(parse_condition(condition.NOT))
@@ -61,7 +61,7 @@ def to_dnf(condition: Condition):
 def depth(condition: Condition) -> int:
     """We expect the condition to be in normal form, with Not only
     applied to BaseConditions"""
-    if isinstance(condition, BaseCondition) or isinstance(condition, Not):
+    if is_base_condition(condition) or isinstance(condition, Not):
         return 0
     elif isinstance(condition, Any):
         return 1 + max(depth(cond) for cond in condition.ANY)
@@ -80,7 +80,7 @@ class SieveCondition(BaseModel):
 
 def to_sieve_conditions(condition: Condition) -> List[SieveCondition]:
     condition_dnf = to_dnf(condition)
-    if isinstance(condition_dnf, BaseCondition) or isinstance(condition_dnf, Not):
+    if is_base_condition(condition_dnf) or isinstance(condition_dnf, Not):
         return [SieveCondition(type="anyof", conditions=[condition_dnf])]
     elif isinstance(condition_dnf, All):
         return [SieveCondition(type="allof", conditions=condition_dnf.ALL)]
