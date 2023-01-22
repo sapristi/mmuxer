@@ -75,7 +75,7 @@ class SieveCondition(BaseModel):
 
     def dump(self):
         conditions_to_sieve = ", ".join(condition.to_sieve() for condition in self.conditions)
-        return f"if {self.type} ({conditions_to_sieve});"
+        return f"if {self.type} ({conditions_to_sieve})"
 
 
 def to_sieve_conditions(condition: Condition) -> List[SieveCondition]:

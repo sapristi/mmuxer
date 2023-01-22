@@ -38,7 +38,7 @@ class IBaseCondition(BaseModel):
         """Used to render sieve files
         We include here the one used for header conditions
         """
-        return f'header {self.operator.sieve} "{self.__class__.__name__}" "{self.get_operand()}'
+        return f'header {self.operator.sieve} "{self.__class__.__name__.lower()}" "{self.get_operand()}"'
 
     def __lt__(self, other):
         """Comparison: used for using with boolean.py"""
