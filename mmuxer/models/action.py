@@ -16,14 +16,17 @@ def format_message(msg: MailMessage):
 
 class BaseAction(BaseModel):
     @abstractmethod
-    def _apply(self, mailbox: BaseMailBox, message: MailMessage):
+    def _apply(self, mailbox: BaseMailBox, message: MailMessage) -> None:
+        """Implementation of the action"""
         pass
 
     @abstractmethod
-    def format(self, message):
+    def format(self, message) -> str:
+        """Used to print information in terminal"""
         pass
 
-    def skip(self, message):
+    def skip(self, message) -> bool:
+        """Custom function to skip action in certain conditions"""
         return False
 
     def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
@@ -35,6 +38,10 @@ class BaseAction(BaseModel):
         else:
             logger.info(self.format(message))
             self._apply(mailbox, message)
+
+    @abstractmethod
+    def to_sieve(self) -> str:
+        """Used to render sieve files"""
 
 
 class MoveAction(BaseAction):
@@ -50,6 +57,9 @@ class MoveAction(BaseAction):
     def format(self, message):
         return f"MOVE {format_message(message)} --> {self.dest}"
 
+    def to_sieve(self):
+        return f'fileinto "{self.dest}"'
+
 
 class DeleteAction(BaseAction):
     action: Literal["delete"] = "delete"
@@ -59,6 +69,9 @@ class DeleteAction(BaseAction):
 
     def format(self, message):
         return f"DELETE {format_message(message)}"
+
+    def to_sieve(self):
+        return "discard"
 
 
 class FlagAction(BaseAction):
@@ -71,6 +84,9 @@ class FlagAction(BaseAction):
     def format(self, message):
         return f"FLAG {format_message(message)} {self.flag.name}"
 
+    def to_sieve(self):
+        return f'setflag "{self.flag.sieve}"'
+
 
 class UnflagAction(BaseAction):
     action: Literal["flag"] = "flag"
@@ -81,6 +97,9 @@ class UnflagAction(BaseAction):
 
     def format(self, message):
         return f"UNFLAG {format_message(message)} {self.flag.name}"
+
+    def to_sieve(self):
+        return f'removeflag "{self.flag.sieve}"'
 
 
 Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]

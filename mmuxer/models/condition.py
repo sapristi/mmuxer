@@ -9,17 +9,23 @@ from .enums import ComparisonOperator
 
 
 class IBaseCondition(BaseModel):
+    class Config:
+        frozen = True
+
     operator: ComparisonOperator = ComparisonOperator.CONTAINS
 
     @abstractmethod
     def get_value(self, message: MailMessage) -> str:
+        """Extract value from the message, used as value to which the rule is applied to."""
         pass
 
     @abstractmethod
     def get_operand(self) -> str:
+        """Used to have a common function returning the operand of the rule across subclasses."""
         pass
 
     def eval(self, message: MailMessage) -> bool:
+        """Evaluate the rule"""
         value = self.get_value(message)
         logging.debug("Eval %s <%s> %s", self.get_operand(), self.operator, value)
         if self.operator == ComparisonOperator.CONTAINS:
@@ -27,6 +33,16 @@ class IBaseCondition(BaseModel):
         if self.operator == ComparisonOperator.EQUALS:
             return self.get_operand().lower() == value.lower()
         raise Exception(f"Unhandled operator {self.operator}")
+
+    def to_sieve(self) -> str:
+        """Used to render sieve files
+        We include here the one used for header conditions
+        """
+        return f'header {self.operator.sieve} "{self.__class__.__name__}" "{self.get_operand()}'
+
+    def __lt__(self, other):
+        """Comparison: used for using with boolean.py"""
+        return repr(self).__lt__(repr(other))
 
 
 class From(IBaseCondition):
@@ -80,6 +96,10 @@ class Body(IBaseCondition):
     def __rich_repr__(self):
         yield self.operator.name, self.BODY
 
+    def to_sieve(self) -> str:
+        """Used to render sieve files"""
+        return f'body :text {self.operator.sieve} "{self.get_operand()}'
+
 
 BaseCondition = Union[From, To, Subject]
 
@@ -115,6 +135,10 @@ class Not(BaseModel):
 
     def eval(self, message: MailMessage):
         return not self.NOT.eval(message)
+
+    def to_sieve(self) -> str:
+        """Used to render sieve files"""
+        return f"not {self.NOT.to_sieve()}"
 
 
 All.update_forward_refs()

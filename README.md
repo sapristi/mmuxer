@@ -58,6 +58,12 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
        mmuxer monitor --help
 
+## Exporting configuration to sieve format
+
+mmuxer can also export the rules of a configuration file to the sieve format, so that the rules will be handled server side.
+
+    mmuxer sieve-export --config-file config.yaml --dest-file rules.sieve
+
 ### Note on SSL
 
 If you get SSL errors while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.

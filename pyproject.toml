@@ -15,7 +15,8 @@ dependencies = [
   "pyyaml",
   "imap-tools",
   "certifi",
-  "watchfiles >= 0.18"
+  "watchfiles >= 0.18",
+  "boolean.py >= 4.0",
 ]
 
 classifiers = [

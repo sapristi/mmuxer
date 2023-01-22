@@ -5,6 +5,13 @@ class ComparisonOperator(Enum):
     CONTAINS = "CONTAINS"
     EQUALS = "EQUALS"
 
+    @property
+    def sieve(self):
+        if self.name == "CONTAINS":
+            return ":contains"
+        if self.name == "EQUALS":
+            return ":is"
+
 
 class Flag(Enum):
     SEEN = "SEEN"
@@ -16,3 +23,7 @@ class Flag(Enum):
     @property
     def imap(self):
         return "\\" + self.name.capitalize()
+
+    @property
+    def sieve(self):
+        return "\\\\" + self.name.capitalize()

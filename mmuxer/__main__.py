@@ -11,6 +11,7 @@ from typer.core import TyperGroup
 from .cli.folder import app as folder_app
 from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
+from .cli.sieve_export import sieve_export
 from .config_state import state
 from .utils import config_file_typer_option
 
@@ -51,6 +52,7 @@ app = typer.Typer(no_args_is_help=True, cls=OrderCommands, callback=main_callbac
 
 app.command(rich_help_panel="Main commands")(monitor_cmd)
 app.command(rich_help_panel="Main commands")(tidy_cmd)
+app.command(rich_help_panel="Main commands")(sieve_export)
 
 
 @app.command(rich_help_panel="Util commands")
