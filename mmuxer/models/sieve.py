@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import List, Literal, Union
 
 import boolean
 
@@ -71,14 +71,14 @@ def depth(condition: Condition) -> int:
 
 class SieveCondition(BaseModel):
     type: Union[Literal["allof"], Literal["anyof"]]
-    conditions: list[Union[BaseCondition, Not]]
+    conditions: List[Union[BaseCondition, Not]]
 
     def dump(self):
         conditions_to_sieve = ", ".join(condition.to_sieve() for condition in self.conditions)
         return f"if {self.type} ({conditions_to_sieve});"
 
 
-def to_sieve_conditions(condition: Condition) -> list[SieveCondition]:
+def to_sieve_conditions(condition: Condition) -> List[SieveCondition]:
     condition_dnf = to_dnf(condition)
     if isinstance(condition_dnf, BaseCondition) or isinstance(condition_dnf, Not):
         return [SieveCondition(type="anyof", conditions=[condition_dnf])]
