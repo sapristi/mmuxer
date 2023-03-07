@@ -12,6 +12,7 @@ from imap_tools import BaseMailBox, MailBox
 from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mmuxer.models.enums import Flag
 from mmuxer.models.rule import Rule
+from mmuxer.models.script import Script
 from mmuxer.models.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -35,11 +36,12 @@ default_actions = {
 
 
 class State:
-    __slots__ = ("_settings", "_rules", "_mailbox", "_config_file", "actions")
+    __slots__ = ("_settings", "_rules", "_scripts", "_mailbox", "_config_file", "actions")
 
     def __init__(self):
         self._settings = None
         self._rules = None
+        self._scripts = None
         self._mailbox = None
         self._config_file = None
         self.actions: dict[str, Action] = default_actions
@@ -78,7 +80,7 @@ class State:
 
         if (
             not isinstance(config_dict, dict)
-            or (config_dict.keys() - {"rules", "settings", "actions"}) != set()
+            or (config_dict.keys() - {"rules", "settings", "actions", "scripts"}) != set()
             or "rules" not in config_dict
             or "settings" not in config_dict
         ):
@@ -121,6 +123,10 @@ class State:
                     sys.exit(1)
             self._rules = parsed_rules
 
+        self._scripts = [
+            Script.parse_obj(script_data) for script_data in config_dict.get("scripts", [])
+        ]
+
     @property
     def config_file(self) -> Path:
         if self._config_file is None:
@@ -144,6 +150,12 @@ class State:
         if self._mailbox is None:
             raise Exception("Uninitialized mailbox")
         return self._mailbox
+
+    @property
+    def scripts(self) -> List[Script]:
+        if self._scripts is None:
+            raise Exception("Uninitialized rules")
+        return self._scripts
 
 
 state = State()

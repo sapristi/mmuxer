@@ -37,6 +37,8 @@ class MonitorWorker(Thread):
                             f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
                         )
                         apply_list(state.rules, box, msg, self.dry_run)
+                        for script in state.scripts:
+                            script.apply(msg)
             except imaplib.IMAP4.abort:
                 logger.warning("IMAP connection aborted, reconnecting ")
                 state.create_mailbox()
