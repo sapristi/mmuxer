@@ -1,6 +1,9 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseSettings
+
+from mmuxer.models.common import BaseModel
 
 
 def in_container():
@@ -19,12 +22,13 @@ if in_container():
     BaseConfig.secrets_dir = "/run/secrets"
 
 
-class Settings(BaseSettings):
+class Settings(BaseModel, BaseSettings):
     server: str
     username: str
     password: str
     ssl_ciphers: Optional[str] = None
     imap_wait_timeout: int = 60
+    scripts_path: Optional[Path] = None
 
     class Config(BaseConfig):
         pass

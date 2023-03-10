@@ -38,7 +38,7 @@ class MonitorWorker(Thread):
                         )
                         apply_list(state.rules, box, msg, self.dry_run)
                         for script in state.scripts:
-                            script.apply(msg)
+                            script.apply(msg, dry_run=self.dry_run)
             except imaplib.IMAP4.abort:
                 logger.warning("IMAP connection aborted, reconnecting ")
                 state.create_mailbox()

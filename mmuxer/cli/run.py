@@ -27,7 +27,7 @@ def tidy(
         msg.associated_folder = folder
         apply_list(state.rules, box, msg, dry_run)
         for script in state.scripts:
-            script.apply(msg)
+            script.apply(msg, dry_run=dry_run)
         counter += 1
     print()
     print(f"{counter} messages parsed.")

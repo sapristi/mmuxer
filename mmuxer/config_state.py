@@ -14,6 +14,7 @@ from mmuxer.models.enums import Flag
 from mmuxer.models.rule import Rule
 from mmuxer.models.script import Script
 from mmuxer.models.settings import Settings
+from mmuxer.utils import ParseException
 
 logger = logging.getLogger(__name__)
 
@@ -75,35 +76,31 @@ class State:
         try:
             config_dict = yaml.safe_load(config_raw)
         except Exception:
-            logger.exception("Failed loading config file, check that the yaml syntax is valid.")
-            raise
+            logger.error("The config file is not valid yaml, check that the yaml syntax is valid.")
+            exit(1)
 
-        if (
-            not isinstance(config_dict, dict)
-            or (config_dict.keys() - {"rules", "settings", "actions", "scripts"}) != set()
-            or "rules" not in config_dict
-            or "settings" not in config_dict
-        ):
-            logger.error(
-                "The config file should contain a mapping with the keys 'rules', 'settings' and 'actions' (optional)."
-            )
-            sys.exit(1)
+        if not isinstance(config_dict, dict) or not "settings" in config_dict:
+            logger.error("The config should be mapping. 'settings' is a required key")
+            exit(1)
+
+        all_keys = {"rules", "actions", "scripts", "settings"}
+        extra_keys = config_dict.keys() - all_keys
+        if extra_keys:
+            logger.warning(f"The following keys in the config are not recognized: {extra_keys}")
 
         try:
-            self._settings = Settings(**config_dict["settings"])
-        except Exception as exc:
-            logger.error("Failed parsing the 'settings' section of the configuration:")
-            logger.error(exc)
+            self._settings = Settings.parse_data(config_dict["settings"])
+        except ParseException as exc:
+            logger.error(exc.format("the 'settings' section of the configuration"))
+
             sys.exit(1)
 
         parsed_rules = []
         for rule_dict in config_dict["rules"]:
             try:
-                parsed_rules.append(Rule.parse_obj(rule_dict))
-            except Exception as exc:
-                logger.error("Failed parsing the 'rules' section of the configuration:")
-                logger.error(rule_dict)
-                logger.error(exc)
+                parsed_rules.append(Rule.parse_data(rule_dict))
+            except ParseException as exc:
+                logger.error(exc.format("the following rules entry"))
                 sys.exit(1)
         self._rules = parsed_rules
 
@@ -115,17 +112,19 @@ class State:
                 if action_name in self.actions:
                     logger.warning(f"Overriding default action f{action_name}")
                 try:
-                    self.actions[action_name] = ActionLoader.parse_obj(action_dict).__root__
-                except Exception as exc:
-                    logger.error("Failed parsing the 'actions' section of the configuration:")
-                    logger.error(action_dict)
-                    logger.error(exc)
+                    self.actions[action_name] = ActionLoader.parse_data(action_dict).__root__
+                except ParseException as exc:
+                    logger.error(exc.format("the following action entry"))
                     sys.exit(1)
             self._rules = parsed_rules
 
-        self._scripts = [
-            Script.parse_obj(script_data) for script_data in config_dict.get("scripts", [])
-        ]
+        self._scripts = []
+        for script_data in config_dict.get("scripts", []):
+            try:
+                self._scripts.append(Script.parse_data(script_data))
+            except ParseException as exc:
+                logger.error(exc.format("the following script entry"))
+                exit(1)
 
     @property
     def config_file(self) -> Path:
