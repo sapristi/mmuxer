@@ -2,6 +2,7 @@ import enum
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 import typer
 from rich.logging import RichHandler
@@ -29,8 +30,15 @@ class LogLevel(enum.Enum):
     ERROR = "error"
 
 
-def main_callback(log_level: LogLevel = typer.Option("info", case_sensitive=False)):
-    if os.isatty(0):
+def main_callback(
+    log_level: LogLevel = typer.Option("info", case_sensitive=False),
+    journald_logger: Optional[str] = typer.Option(..., help="Log to journald instead of stdout"),
+):
+    if journald_logger:
+        from cysystemd import journal
+
+        handler = journal.JournaldLogHandler(identifier=journald_logger)
+    elif os.isatty(0):
         handler = RichHandler(
             rich_tracebacks=True, show_time=False, show_path=(log_level == LogLevel.DEBUG)
         )
