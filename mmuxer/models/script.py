@@ -40,7 +40,7 @@ class PythonScript(BaseModel):
             else:
                 logger.info(log_message)
                 try:
-                    self._callable(message, **self.kwargs)
+                    self._callable(message, **self.kwargs, logger=logger)
                 except Exception:
                     logger.exception(f"Script {self.name} execution failed.")
 
