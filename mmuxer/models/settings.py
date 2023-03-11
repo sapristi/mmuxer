@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseSettings
@@ -28,7 +27,6 @@ class Settings(BaseModel, BaseSettings):
     password: str
     ssl_ciphers: Optional[str] = None
     imap_wait_timeout: int = 60
-    scripts_path: Optional[Path] = None
 
     class Config(BaseConfig):
         pass
