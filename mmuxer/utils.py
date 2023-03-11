@@ -3,6 +3,7 @@ from collections import Counter
 
 import typer
 import yaml
+from imap_tools import MailMessage
 from pydantic import ValidationError
 
 config_file_typer_option = typer.Option(
@@ -83,3 +84,7 @@ class ParseException(Exception):
             validation_error=exc,
             message=message,
         )
+
+
+def format_message(msg: MailMessage):
+    return f"[{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"

@@ -4,14 +4,12 @@ from typing import Literal, Union
 
 from imap_tools import BaseMailBox, MailMessage
 
+from mmuxer.utils import format_message
+
 from .common import BaseModel
 from .enums import Flag
 
 logger = logging.getLogger(__name__)
-
-
-def format_message(msg: MailMessage):
-    return f"[{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
 
 
 class BaseAction(BaseModel):

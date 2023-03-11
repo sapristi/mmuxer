@@ -12,7 +12,7 @@ from imap_tools import BaseMailBox, MailBox
 from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mmuxer.models.enums import Flag
 from mmuxer.models.rule import Rule
-from mmuxer.models.script import Script
+from mmuxer.models.script import PythonScript
 from mmuxer.models.settings import Settings
 from mmuxer.utils import ParseException
 
@@ -121,7 +121,7 @@ class State:
         self._scripts = []
         for script_data in config_dict.get("scripts", []):
             try:
-                self._scripts.append(Script.parse_data(script_data))
+                self._scripts.append(PythonScript.parse_data(script_data))
             except ParseException as exc:
                 logger.error(exc.format("the following script entry"))
                 exit(1)
@@ -151,7 +151,7 @@ class State:
         return self._mailbox
 
     @property
-    def scripts(self) -> List[Script]:
+    def scripts(self) -> List[PythonScript]:
         if self._scripts is None:
             raise Exception("Uninitialized rules")
         return self._scripts
