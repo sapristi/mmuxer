@@ -32,7 +32,7 @@ class LogLevel(enum.Enum):
 
 def main_callback(
     log_level: LogLevel = typer.Option("info", case_sensitive=False),
-    journald_logger: Optional[str] = typer.Option(..., help="Log to journald instead of stdout"),
+    journald_logger: Optional[str] = typer.Option(None, help="Log to journald instead of stdout"),
 ):
     if journald_logger:
         from cysystemd import journal
