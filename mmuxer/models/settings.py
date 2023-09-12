@@ -27,6 +27,8 @@ class Settings(BaseModel, BaseSettings):
     password: str
     ssl_ciphers: Optional[str] = None
     imap_wait_timeout: int = 60
+    sieve_folder_prefix: str = ""
+    sieve_folder_separator: str = "/"
 
     class Config(BaseConfig):
         pass
