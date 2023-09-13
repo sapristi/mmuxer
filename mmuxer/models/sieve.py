@@ -78,7 +78,7 @@ class SieveCondition(BaseModel):
         return f"if {self.type} ({conditions_to_sieve})"
 
 
-def to_sieve_conditions(condition: Condition) -> List[SieveCondition]:
+def to_sieve_conditions_flat(condition: Condition) -> List[SieveCondition]:
     condition_dnf = to_dnf(condition)
     if is_base_condition(condition_dnf) or isinstance(condition_dnf, Not):
         return [SieveCondition(type="anyof", conditions=[condition_dnf])]
@@ -101,3 +101,24 @@ def to_sieve_conditions(condition: Condition) -> List[SieveCondition]:
         return res
     else:
         raise Exception(f"Unexpected condition {condition_dnf}")
+
+
+def to_sieve_condition_rec(condition: Condition, indent_n: int) -> str:
+    indent = "  " * indent_n
+    if isinstance(condition, Not):
+        inner = to_sieve_condition_rec(condition.NOT, indent_n)
+        return f"not {inner}"
+    if isinstance(condition, All):
+        inner_conds = (to_sieve_condition_rec(cond, indent_n + 1) for cond in condition.ALL)
+        inner = f",\n".join(inner_conds)
+        return f"{indent}allof (\n{inner}\n{indent})"
+    if isinstance(condition, Any):
+        inner_conds = (to_sieve_condition_rec(cond, indent_n + 1) for cond in condition.ANY)
+        inner = f",\n".join(inner_conds)
+        return f"{indent}anyof (\n{inner}\n{indent})"
+
+    return f"{indent}{condition.to_sieve()}"
+
+
+def to_sieve_conditions(condition: Condition) -> str:
+    return "if " + to_sieve_condition_rec(condition, 0)

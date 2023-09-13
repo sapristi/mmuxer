@@ -7,10 +7,18 @@ class ComparisonOperator(Enum):
 
     @property
     def sieve(self):
-        if self.name == "CONTAINS":
+        if self == ComparisonOperator.CONTAINS:
             return ":contains"
-        if self.name == "EQUALS":
+        if self == ComparisonOperator.EQUALS:
             return ":is"
+        raise Exception(f"Unhandled operator {self}")
+
+    def eval(self, operand: str, value: str) -> bool:
+        if self == ComparisonOperator.CONTAINS:
+            return operand.lower() in value.lower()
+        if self == ComparisonOperator.EQUALS:
+            return operand.lower() == value.lower()
+        raise Exception(f"Unhandled operator {self}")
 
 
 class Flag(Enum):

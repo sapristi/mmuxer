@@ -1,5 +1,6 @@
 import logging
 from abc import abstractmethod
+from collections.abc import Sequence
 from typing import ForwardRef, List, Union
 
 from imap_tools import MailMessage
@@ -20,25 +21,33 @@ class IBaseCondition(BaseModel):
         pass
 
     @abstractmethod
-    def get_operand(self) -> str:
+    def get_operand(self) -> str | Sequence[str]:
         """Used to have a common function returning the operand of the rule across subclasses."""
         pass
 
     def eval(self, message: MailMessage) -> bool:
         """Evaluate the rule"""
         value = self.get_value(message)
-        logging.debug("Eval %s <%s> %s", self.get_operand(), self.operator, value)
-        if self.operator == ComparisonOperator.CONTAINS:
-            return self.get_operand().lower() in value.lower()
-        if self.operator == ComparisonOperator.EQUALS:
-            return self.get_operand().lower() == value.lower()
-        raise Exception(f"Unhandled operator {self.operator}")
+        operand = self.get_operand()
+        logging.debug("Eval %s <%s> %s", operand, self.operator, value)
+        if isinstance(operand, str):
+            operands = [operand]
+        else:
+            operands = operand
+
+        return any(self.operator.eval(op, value) for op in operands)
 
     def to_sieve(self) -> str:
         """Used to render sieve files
         We include here the one used for header conditions
         """
-        return f'header {self.operator.sieve} "{self.__class__.__name__.lower()}" "{self.get_operand()}"'
+        operand = self.get_operand()
+        if isinstance(operand, str):
+            operand_str = f'"{operand}"'
+        else:
+            operand_str = "[" + ", ".join(f'"{op}"' for op in operand) + "]"
+
+        return f'header {self.operator.sieve} "{self.__class__.__name__.lower()}" {operand_str}'
 
     def __lt__(self, other):
         """Comparison: used for using with boolean.py"""
@@ -46,12 +55,12 @@ class IBaseCondition(BaseModel):
 
 
 class From(IBaseCondition):
-    FROM: str
+    FROM: str | frozenset[str]
 
     def get_value(self, message: MailMessage):
         return message.from_
 
-    def get_operand(self) -> str:
+    def get_operand(self) -> str | Sequence[str]:
         return self.FROM
 
     def __rich_repr__(self):
@@ -59,12 +68,12 @@ class From(IBaseCondition):
 
 
 class To(IBaseCondition):
-    TO: str
+    TO: str | frozenset[str]
 
     def get_value(self, message: MailMessage):
         return " ".join(message.to)
 
-    def get_operand(self) -> str:
+    def get_operand(self) -> str | Sequence[str]:
         return self.TO
 
     def __rich_repr__(self):
@@ -72,12 +81,12 @@ class To(IBaseCondition):
 
 
 class Subject(IBaseCondition):
-    SUBJECT: str
+    SUBJECT: str | frozenset[str]
 
     def get_value(self, message: MailMessage):
         return message.subject
 
-    def get_operand(self) -> str:
+    def get_operand(self) -> str | Sequence[str]:
         return self.SUBJECT
 
     def __rich_repr__(self):
@@ -101,7 +110,7 @@ class Body(IBaseCondition):
         return f'body :text {self.operator.sieve} "{self.get_operand()}'
 
 
-BaseCondition = Union[From, To, Subject]
+BaseCondition = Union[From, To, Subject, Body]
 
 
 def is_base_condition(obj):

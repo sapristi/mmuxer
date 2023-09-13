@@ -54,8 +54,16 @@ class Rule(BaseModel):
         sieve_actions_str = "\n".join(f"  {action};" for action in sieve_actions)
         return [
             f"""
+# rule:[{name}]
+{sieve_conditions}
+{{
+{sieve_actions_str}
+}}"""
+        ]
+        return [
+            f"""
 # rule:[{name}_{i}]
-{sieve_condition.dump()}
+{sieve_condition}
 {{
 {sieve_actions_str}
 }}"""
