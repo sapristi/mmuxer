@@ -86,6 +86,17 @@ class ParseException(Exception):
             message=message,
         )
 
+    def __str__(self):
+        return str(
+            (
+                self.error_loc,
+                self.bad_content,
+                self.full_content,
+                self.validation_error,
+                self.message,
+            )
+        )
+
 
 def format_message(msg: MailMessage):
     return f"[{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"

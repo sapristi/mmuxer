@@ -12,7 +12,7 @@ from .sieve import to_sieve_conditions
 class Rule(BaseModel):
     name: Optional[str] = None
     condition: Condition
-    move_to: Union[str, None]
+    move_to: Union[str, None] = None
     keep_evaluating: bool = False
     actions: List[Union[str, Action]] = Field(default_factory=list)
 

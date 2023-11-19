@@ -1,3 +1,4 @@
+import pytest
 from pydantic import BaseModel, ValidationError
 
 from mmuxer.models.condition import Condition
@@ -10,12 +11,11 @@ def test_find_likely_error_location_single_error():
         b: int
 
     data = {"a": "ok"}
-    try:
-        M.parse_obj(data)
-    except ValidationError as exc:
-        location, message = find_likely_error_location_and_message(exc)
-        assert location == ("b",)
-        assert message == "field required"
+    with pytest.raises(ValidationError) as exc_info:
+        M.model_validate(data)
+    location, message = find_likely_error_location_and_message(exc_info.value)
+    assert location == ("b",)
+    assert message == "Field required"
 
 
 def test_find_likely_error_location_multiple_errors():
@@ -24,12 +24,11 @@ def test_find_likely_error_location_multiple_errors():
         b: int
 
     data = {}
-    try:
-        M.parse_obj(data)
-    except ValidationError as exc:
-        location, message = find_likely_error_location_and_message(exc)
-        assert location == ("b",) or location == ("a",)
-        assert message == "field required"
+    with pytest.raises(ValidationError) as exc_info:
+        M.model_validate(data)
+    location, message = find_likely_error_location_and_message(exc_info.value)
+    assert location == ("b",) or location == ("a",)
+    assert message == "Field required"
 
 
 def test_find_likely_error_location_unions():
@@ -45,14 +44,15 @@ def test_find_likely_error_location_unions():
     class M(BaseModel):
         condition: Condition
 
-    try:
-        M.parse_obj(data)
-    except ValidationError as exc:
-        location, message = find_likely_error_location_and_message(exc)
-        assert location == ("condition", "ALL", 1, "SUBECT")
-        assert message == "could not parse"
-        parse_exception = ParseException.from_validation_error(exc, data)
-        assert parse_exception.bad_content == {"SUBECT": "ok"}
+    with pytest.raises(ValidationError) as exc_info:
+        M.model_validate(data)
+
+    location, message = find_likely_error_location_and_message(exc_info.value)
+    assert location == ("condition", "All", "ALL", 1, "From")
+    assert message == "could not parse"
+
+    parse_exception = ParseException.from_validation_error(exc_info.value, data)
+    assert parse_exception.bad_content == {"From": "Missing field"}
 
 
 def test_find_likely_error_location_unions_multiple_errors():
@@ -61,14 +61,14 @@ def test_find_likely_error_location_unions_multiple_errors():
     class M(BaseModel):
         condition: Condition
 
-    try:
-        M.parse_obj(data)
-    except ValidationError as exc:
-        location, message = find_likely_error_location_and_message(exc)
-        assert location == ("condition", "ALL", 2, "ANY", 0)
-        assert message == "could not parse"
-        parse_exception = ParseException.from_validation_error(exc, data)
-        assert parse_exception.bad_content == "test"
+    with pytest.raises(ValidationError) as exc_info:
+        M.model_validate(data)
+
+    location, message = find_likely_error_location_and_message(exc_info.value)
+    assert location == ("condition", "All", "ALL", 2, "Any", "ANY", 0)
+    assert message == "could not parse"
+    parse_exception = ParseException.from_validation_error(exc_info.value, data)
+    assert parse_exception.bad_content == "Missing field"
 
 
 def test_find_likely_error_location_unions_multiple_errors_bis():
@@ -77,11 +77,11 @@ def test_find_likely_error_location_unions_multiple_errors_bis():
     class M(BaseModel):
         condition: Condition
 
-    try:
-        M.parse_obj(data)
-    except ValidationError as exc:
-        location, message = find_likely_error_location_and_message(exc)
-        assert message == "could not parse"
-        assert location == ("condition", "ALL", 2, "ANY", 0)
-        parse_exception = ParseException.from_validation_error(exc, data)
-        assert parse_exception.bad_content == {}
+    with pytest.raises(ValidationError) as exc_info:
+        M.model_validate(data)
+
+    location, message = find_likely_error_location_and_message(exc_info.value)
+    assert message == "could not parse"
+    assert location == ("condition", "All", "ALL", 2, "Any", "ANY", 0)
+    parse_exception = ParseException.from_validation_error(exc_info.value, data)
+    assert parse_exception.bad_content == "Missing field"
