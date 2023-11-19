@@ -58,6 +58,10 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
        mmuxer monitor --help
 
+## Using env variables for settings
+
+Settings values (`username`, `password`, etc.) can be configured by providing environment variables of the same name (case insensitive).
+
 ## Exporting configuration to sieve format
 
 mmuxer can also export the rules of a configuration file to the sieve format, so that the rules will be handled server side.

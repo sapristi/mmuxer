@@ -89,3 +89,13 @@ def create_missing_folders():
     input("Will create the given folders, is that oK? (Ctrl-c to quit)")
     for folder in destinations_without_folder:
         state.mailbox.folder.create(folder)
+
+
+@app.command(rich_help_panel="Bulk operations")
+def move_emails(source_folder: str, dest_folder: str):
+    """Move all emails in `source_folder` to `dest_folder`"""
+
+    box = state.mailbox
+    box.folder.set(source_folder)
+    for msg in box.fetch(bulk=True):
+        box.move(msg.uid, dest_folder)

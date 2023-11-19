@@ -10,7 +10,7 @@ from .sieve import to_sieve_conditions
 
 
 class Rule(BaseModel):
-    name: Optional[str]
+    name: Optional[str] = None
     condition: Condition
     move_to: Union[str, None]
     keep_evaluating: bool = False

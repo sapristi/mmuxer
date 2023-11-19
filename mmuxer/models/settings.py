@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mmuxer.models.common import BaseModel
 
@@ -12,15 +12,6 @@ def in_container():
         return "docker" in value or "kubepod" in value
 
 
-class BaseConfig:
-    env_file = ".env"
-    secrets_dir: Optional[str] = None
-
-
-if in_container():
-    BaseConfig.secrets_dir = "/run/secrets"
-
-
 class Settings(BaseModel, BaseSettings):
     server: str
     username: str
@@ -30,5 +21,6 @@ class Settings(BaseModel, BaseSettings):
     sieve_folder_prefix: str = ""
     sieve_folder_separator: str = "/"
 
-    class Config(BaseConfig):
-        pass
+    model_config = SettingsConfigDict(
+        env_file=".env", secrets_dir="/run/secrets" if in_container() else None
+    )

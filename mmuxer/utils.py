@@ -1,5 +1,6 @@
 import logging
 from collections import Counter
+from pathlib import Path
 
 import typer
 import yaml
@@ -7,7 +8,7 @@ from imap_tools import MailMessage
 from pydantic import ValidationError
 
 config_file_typer_option = typer.Option(
-    ..., exists=True, dir_okay=False, readable=True, resolve_path=True
+    Path("config.yaml"), exists=True, dir_okay=False, readable=True, resolve_path=True
 )
 logger = logging.getLogger(__name__)
 

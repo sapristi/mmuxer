@@ -11,7 +11,7 @@ class BaseModel(PydanticBaseModel):
     @classmethod
     def parse_data(cls, data):
         try:
-            return cls.parse_obj(data)
+            return cls.model_validate(data)
         except ValidationError as exc:
             raise ParseException.from_validation_error(
                 exc=exc,

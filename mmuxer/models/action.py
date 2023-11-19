@@ -3,6 +3,7 @@ from abc import abstractmethod
 from typing import Literal, Union
 
 from imap_tools import BaseMailBox, MailMessage
+from pydantic import RootModel
 
 from mmuxer.utils import format_message
 
@@ -106,7 +107,4 @@ class UnflagAction(BaseAction):
 
 
 Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]
-
-
-class ActionLoader(BaseModel):
-    __root__: Action
+ActionLoader = RootModel[Action]
