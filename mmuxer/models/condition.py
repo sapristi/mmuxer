@@ -21,7 +21,7 @@ class IBaseCondition(BaseModel):
         pass
 
     @abstractmethod
-    def get_operand(self) -> str | Sequence[str]:
+    def get_operand(self) -> Union[str, Sequence[str]]:
         """Used to have a common function returning the operand of the rule across subclasses."""
         pass
 
@@ -55,12 +55,12 @@ class IBaseCondition(BaseModel):
 
 
 class From(IBaseCondition):
-    FROM: str | frozenset[str]
+    FROM: Union[str, frozenset[str]]
 
     def get_value(self, message: MailMessage):
         return message.from_
 
-    def get_operand(self) -> str | Sequence[str]:
+    def get_operand(self) -> Union[str, Sequence[str]]:
         return self.FROM
 
     def __rich_repr__(self):
@@ -68,12 +68,12 @@ class From(IBaseCondition):
 
 
 class To(IBaseCondition):
-    TO: str | frozenset[str]
+    TO: Union[str, frozenset[str]]
 
     def get_value(self, message: MailMessage):
         return " ".join(message.to)
 
-    def get_operand(self) -> str | Sequence[str]:
+    def get_operand(self) -> Union[str, Sequence[str]]:
         return self.TO
 
     def __rich_repr__(self):
@@ -81,12 +81,12 @@ class To(IBaseCondition):
 
 
 class Subject(IBaseCondition):
-    SUBJECT: str | frozenset[str]
+    SUBJECT: Union[str, frozenset[str]]
 
     def get_value(self, message: MailMessage):
         return message.subject
 
-    def get_operand(self) -> str | Sequence[str]:
+    def get_operand(self) -> Union[str, Sequence[str]]:
         return self.SUBJECT
 
     def __rich_repr__(self):
