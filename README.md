@@ -58,7 +58,9 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
        mmuxer monitor --help
 
-## Using env variables for settings
+## Settings
+
+### Using env variables for settings
 
 Settings values (`username`, `password`, etc.) can be configured by providing environment variables of the same name (case insensitive).
 
@@ -70,11 +72,18 @@ mmuxer can also export the rules of a configuration file to the sieve format, so
 
 ### Note on SSL
 
-If you get SSL errors while connecting to your server, see the [SSL Configuration](#SSL-Configuration) section.
+If you get SSL errors while connecting to your server, see the [SSL Configuration](./docs/advanced_usage.md#ssl-configuration) section.
 
-### Python compatibility
+### All available settings
 
-This program should work with Python >= 3.8.
+    server: str
+    username: str
+    password: str
+    ssl_ciphers: Optional[str] = None
+    imap_wait_timeout: int = 60
+    sieve_folder_prefix: str = ""  # folder prefix used when generating sieve rules
+    sieve_folder_separator: str = "/"  # folder separator used when generating sieve rules
+    fetch_batch_size: int = 1000  # batch size used when fetching messages in bulk
 
 ## Going further on
 
