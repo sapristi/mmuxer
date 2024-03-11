@@ -9,6 +9,8 @@ from rich.logging import RichHandler
 from rich.pretty import pprint
 from typer.core import TyperGroup
 
+import mmuxer
+
 from .cli.folder import app as folder_app
 from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
@@ -57,7 +59,12 @@ def main_callback(
     )
 
 
-app = typer.Typer(no_args_is_help=True, cls=OrderCommands, callback=main_callback)
+app = typer.Typer(
+    no_args_is_help=True,
+    cls=OrderCommands,
+    callback=main_callback,
+    help=f"Mail Muxer - Version {mmuxer.__version__}",
+)
 
 
 app.command(rich_help_panel="Main commands")(monitor_cmd)
