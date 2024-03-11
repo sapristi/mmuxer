@@ -18,16 +18,16 @@ jobs:
     - name: Install pypa/setuptools
       run: >-
         python -m
-        pip install wheel
+        pip install build wheel
     - name: Extract tag name
       id: tag
       run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3)
-    - name: Update version in setup.py
+    - name: Update version in __init__.py
       run: >-
         sed -i "s/__version__ = .*/__version__ = \"${{ steps.tag.outputs.TAG_NAME }}\"/g" mmuxer/__init__.py
     - name: Build a binary wheel
       run: >-
-        python setup.py sdist bdist_wheel
+        python -m build --sdist --wheel
     - name: Publish distribution to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
