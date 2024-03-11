@@ -24,7 +24,7 @@ jobs:
       run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3)
     - name: Update version in setup.py
       run: >-
-        sed -i "s/version = .*/version = \"${{ steps.tag.outputs.TAG_NAME }}\"/g" pyproject.toml
+        sed -i "s/__version__ = .*/__version__ = \"${{ steps.tag.outputs.TAG_NAME }}\"/g" mmuxer/__init__.py
     - name: Build a binary wheel
       run: >-
         python setup.py sdist bdist_wheel

@@ -1,6 +1,5 @@
 [project]
 name = "mmuxer"
-version = "0.1"
 description = "Manage mail from your server."
 authors = [
     {name = "Mathias Millet", email="mathias@mmill.eu"},
@@ -23,6 +22,12 @@ dependencies = [
 classifiers = [
   "Topic :: Communications :: Email :: Filters"
 ]
+dynamic = ["version"]
+
+[tool.pdm.version]
+source = "file"
+path = "mmuxer/__init__.py"
+
 [project.scripts]
 mmuxer = "mmuxer.__main__:app"
 
