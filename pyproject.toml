@@ -32,12 +32,8 @@ path = "mmuxer/__init__.py"
 mmuxer = "mmuxer.__main__:app"
 
 [build-system]
-requires = [
-    "setuptools >= 60.9.3",
-    "setuptools_scm[toml] >= 6.2",
-]
-build-backend = "setuptools.build_meta"
-
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project.optional-dependencies]
 dev = [
