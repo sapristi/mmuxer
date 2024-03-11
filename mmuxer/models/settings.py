@@ -20,7 +20,7 @@ class Settings(BaseModel, BaseSettings):
     imap_wait_timeout: int = 60
     sieve_folder_prefix: str = ""  # folder prefix used when generating sieve rules
     sieve_folder_separator: str = "/"  # folder separator used when generating sieve rules
-    fetch_batch_size: int = 1000  # batch size used when fetching messages in bulk
+    fetch_batch_size: int = 100  # batch size used when fetching messages in bulk
 
     model_config = SettingsConfigDict(
         env_file=".env", secrets_dir="/run/secrets" if in_container() else None

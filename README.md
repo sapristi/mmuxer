@@ -83,7 +83,7 @@ If you get SSL errors while connecting to your server, see the [SSL Configuratio
     imap_wait_timeout: int = 60
     sieve_folder_prefix: str = ""  # folder prefix used when generating sieve rules
     sieve_folder_separator: str = "/"  # folder separator used when generating sieve rules
-    fetch_batch_size: int = 1000  # batch size used when fetching messages in bulk
+    fetch_batch_size: int = 100  # batch size used when fetching messages in bulk
 
 ## Going further on
 
