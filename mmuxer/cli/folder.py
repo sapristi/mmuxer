@@ -97,5 +97,5 @@ def move_emails(source_folder: str, dest_folder: str):
 
     box = state.mailbox
     box.folder.set(source_folder)
-    for msg in box.fetch(bulk=True, limit=state.settings.fetch_batch_size):
+    for msg in box.fetch(bulk=True):
         box.move(msg.uid, dest_folder)

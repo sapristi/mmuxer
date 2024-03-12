@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 
 import pytest
-from imap_tools import BaseMailBox
+
+# from imap_tools import BaseMailBox
+from mmuxer.mailbox import BaseMailBox
 
 
 class UnsafeMailBox(BaseMailBox):

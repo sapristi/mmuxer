@@ -23,7 +23,7 @@ def tidy(
     if folder is not None:
         box.folder.set(folder)
     counter = 0
-    for msg in box.fetch(bulk=True, limit=state.settings.fetch_batch_size):
+    for msg in box.fetch(bulk=True):
         msg.associated_folder = folder
         apply_list(state.rules, box, msg, dry_run)
         for script in state.scripts:

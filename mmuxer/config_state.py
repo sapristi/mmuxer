@@ -7,8 +7,9 @@ from typing import List
 
 import certifi
 import yaml
-from imap_tools import BaseMailBox, MailBox
+from imap_tools.mailbox import BaseMailBox
 
+from mmuxer.mailbox import MailBox
 from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mmuxer.models.enums import Flag
 from mmuxer.models.rule import Rule
