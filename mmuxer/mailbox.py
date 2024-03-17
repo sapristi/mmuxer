@@ -29,11 +29,11 @@ class BaseMailBox(BaseMailBoxOG):
     def _fetch_in_bulk(
         self, uid_list: Sequence[str], message_parts: str, reverse: bool
     ) -> Iterator[list]:
-        from mmuxer.config_state import state
-
         if not uid_list:
             return
-        batches = batched(uid_list, state.settings.fetch_batch_size)
+        # batches of size 100 seem like a sweet spot in terms of perf, and
+        # should prevent any issue with requests too big
+        batches = batched(uid_list, 100)
         for uid_batch in batches:
             fetch_result = self.client.uid("fetch", ",".join(uid_batch), message_parts)
             check_command_status(fetch_result, MailboxFetchError)
@@ -67,7 +67,6 @@ class MailBox(BaseMailBox):
         self._certfile = certfile
         self._ssl_context = ssl_context
         super().__init__()
-        print("CREATED")
 
     def _get_mailbox_client(self) -> imaplib.IMAP4:
         if PYTHON_VERSION_MINOR < 9:
