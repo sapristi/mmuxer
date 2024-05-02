@@ -5,12 +5,9 @@ Code modified from https://github.com/ikvk/imap_tools/blob/master/imap_tools/mai
 import imaplib
 import sys
 from itertools import islice
-from typing import Iterable, Iterator, Sequence
+from typing import Iterable
 
-from imap_tools.errors import MailboxFetchError
-from imap_tools.mailbox import BaseMailBox as BaseMailBoxOG
-from imap_tools.mailbox import check_timeout_arg_support
-from imap_tools.utils import check_command_status, chunks
+from imap_tools.mailbox import BaseMailBox, check_timeout_arg_support
 
 PYTHON_VERSION_MINOR = sys.version_info.minor
 
@@ -22,25 +19,6 @@ def batched(iterable: Iterable, n: int):
     it = iter(iterable)
     while batch := tuple(islice(it, n)):
         yield batch
-
-
-class BaseMailBox(BaseMailBoxOG):
-
-    def _fetch_in_bulk(
-        self, uid_list: Sequence[str], message_parts: str, reverse: bool
-    ) -> Iterator[list]:
-        if not uid_list:
-            return
-        # batches of size 100 seem like a sweet spot in terms of perf, and
-        # should prevent any issue with requests too big
-        batches = batched(uid_list, 100)
-        for uid_batch in batches:
-            fetch_result = self.client.uid("fetch", ",".join(uid_batch), message_parts)
-            check_command_status(fetch_result, MailboxFetchError)
-            if not fetch_result[1] or fetch_result[1][0] is None:
-                return
-            for built_fetch_item in chunks((reversed if reverse else iter)(fetch_result[1]), 2):
-                yield built_fetch_item
 
 
 class MailBox(BaseMailBox):

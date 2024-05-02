@@ -13,7 +13,11 @@ class BaseModel(PydanticBaseModel):
         try:
             return cls.model_validate(data)
         except ValidationError as exc:
-            raise ParseException.from_validation_error(
-                exc=exc,
-                full_content=data,
-            )
+            try:
+                parsed_exc = ParseException.from_validation_error(
+                    exc=exc,
+                    full_content=data,
+                )
+                raise parsed_exc
+            except:
+                raise exc

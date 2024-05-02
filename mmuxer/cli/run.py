@@ -11,6 +11,24 @@ from mmuxer.workers import MonitorWorker, WatcherWorker
 logger = logging.getLogger(__name__)
 
 
+def _tidy(
+    folder: str = typer.Option(None, help="Folder to fetch the messages from"),
+    dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
+):
+    box = state.mailbox
+    if folder is not None:
+        box.folder.set(folder)
+    counter = 0
+    for msg in box.fetch(bulk=100):
+        msg.associated_folder = folder
+        apply_list(state.rules, box, msg, dry_run)
+        for script in state.scripts:
+            script.apply(msg, dry_run=dry_run)
+        counter += 1
+    print()
+    print(f"{counter} messages parsed.")
+
+
 def tidy(
     config_file: Path = config_file_typer_option,
     folder: str = typer.Option(None, help="Folder to fetch the messages from"),
@@ -19,18 +37,7 @@ def tidy(
     """Run once, on all messages of the INBOX (or the given folder)."""
     state.load_config_file(config_file)
     state.create_mailbox()
-    box = state.mailbox
-    if folder is not None:
-        box.folder.set(folder)
-    counter = 0
-    for msg in box.fetch(bulk=True):
-        msg.associated_folder = folder
-        apply_list(state.rules, box, msg, dry_run)
-        for script in state.scripts:
-            script.apply(msg, dry_run=dry_run)
-        counter += 1
-    print()
-    print(f"{counter} messages parsed.")
+    _tidy(folder, dry_run)
 
 
 def monitor(

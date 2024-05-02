@@ -13,7 +13,7 @@ dependencies = [
     "pydantic>2",
     "pydantic-settings",
     "pyyaml",
-    "imap-tools==v1.5.0",
+    "imap-tools==v1.6.0",
     "certifi",
     "watchfiles >= 0.18",
     "boolean.py >= 4.0",
