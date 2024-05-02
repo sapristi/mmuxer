@@ -6,7 +6,7 @@ on:
       - "*"
 
 jobs:
-  build:
+  test-matrix:
 
     runs-on: ubuntu-latest
     strategy:
@@ -23,7 +23,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pdm
-          pdm install -G :all --frozen-lockfile
+          pdm install -G dev --frozen-lockfile
       - name: Test with pytest
         run: |
-          pytest
+          pdm run pytest
+
+  # test-systemd:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Set up Python 3.11
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: 3.11
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential libsystemd-dev
+  #         python -m pip install --upgrade pip
+  #         pip install pdm
+  #         pdm install -G :all --frozen-lockfile
+  #     - name: Test with pytest
+  #       run: |
+  #         pytest
