@@ -6,3 +6,5 @@ dist/
 .imap_server.log
 
 config.yaml
+pdm.lock
+.pdm-python

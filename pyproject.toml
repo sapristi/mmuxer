@@ -9,14 +9,14 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 dependencies = [
-  "typer[all]>=0.7, <0.8",
-  "pydantic>2",
-  "pydantic-settings",
-  "pyyaml",
-  "imap-tools",
-  "certifi",
-  "watchfiles >= 0.18",
-  "boolean.py >= 4.0",
+    "typer[all]>=0.7, <0.8",
+    "pydantic>2",
+    "pydantic-settings",
+    "pyyaml",
+    "imap-tools==v1.5.0",
+    "certifi",
+    "watchfiles >= 0.18",
+    "boolean.py >= 4.0",
 ]
 
 classifiers = [
@@ -28,6 +28,15 @@ dynamic = ["version"]
 source = "file"
 path = "mmuxer/__init__.py"
 
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest >= 7.0",
+    "pre-commit>=3.7.0",
+    "pytest-bg-process",
+    "pytz",
+]
+
+
 [project.scripts]
 mmuxer = "mmuxer.__main__:app"
 
@@ -36,13 +45,6 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [project.optional-dependencies]
-dev = [
-    "pytest >= 7.0",
-    "pre-commit >= 2.0",
-    "pytest-bg-process",
-    "pytz",
-]
-
 systemd = [
      "cysystemd >= 1.5.0"
 ]
