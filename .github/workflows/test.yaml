@@ -21,6 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          apt install build-essential libsystemd-dev
           python -m pip install --upgrade pip
           pip install pdm
           pdm install -G :all --frozen-lockfile
