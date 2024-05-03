@@ -1,12 +1,11 @@
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import ValidationError
+from pydantic import ConfigDict, ValidationError
 
 from mmuxer.utils import ParseException
 
 
 class BaseModel(PydanticBaseModel):
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
     @classmethod
     def parse_data(cls, data):

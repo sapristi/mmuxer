@@ -4,14 +4,14 @@ from collections.abc import Sequence
 from typing import ForwardRef, List, Union
 
 from imap_tools import MailMessage
+from pydantic import ConfigDict
 
 from .common import BaseModel
 from .enums import ComparisonOperator
 
 
 class IBaseCondition(BaseModel):
-    class Config:
-        frozen = True
+    model_config = ConfigDict(frozen=True)
 
     operator: ComparisonOperator = ComparisonOperator.CONTAINS
 
