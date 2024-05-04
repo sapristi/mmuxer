@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _tidy(
-    folder: str | None,
+    folder: Union[str, None],
     dry_run: bool,
 ):
     box = state.mailbox
