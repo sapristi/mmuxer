@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Union
 
 import typer
 
@@ -31,7 +32,7 @@ def _tidy(
 
 def tidy(
     config_file: Path = config_file_typer_option,
-    folder: str | None = typer.Option(None, help="Folder to fetch the messages from"),
+    folder: Union[str, None] = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
 ):
     """Run once, on all messages of the INBOX (or the given folder)."""
