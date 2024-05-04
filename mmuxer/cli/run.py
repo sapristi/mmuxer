@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def _tidy(
-    folder: str = typer.Option(None, help="Folder to fetch the messages from"),
-    dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
+    folder: str | None,
+    dry_run: bool,
 ):
     box = state.mailbox
     if folder is not None:
@@ -31,7 +31,7 @@ def _tidy(
 
 def tidy(
     config_file: Path = config_file_typer_option,
-    folder: str = typer.Option(None, help="Folder to fetch the messages from"),
+    folder: str | None = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
 ):
     """Run once, on all messages of the INBOX (or the given folder)."""
