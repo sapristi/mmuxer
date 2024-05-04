@@ -156,8 +156,8 @@ class Not(BaseModel):
         return f"not {self.NOT.to_sieve()}"
 
 
-All.update_forward_refs()
-Any.update_forward_refs()
-Not.update_forward_refs()
+All.model_rebuild()
+Any.model_rebuild()
+Not.model_rebuild()
 
 Condition = Union[BaseCondition, All, Any, Not]
