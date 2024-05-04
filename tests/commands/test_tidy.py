@@ -11,6 +11,7 @@ rules:
 settings:
   server: localhost
   username: u
+  password: p
 """
 
 
