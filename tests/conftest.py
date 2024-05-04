@@ -36,7 +36,7 @@ def data():
 
 @pytest.fixture
 def make_message(mailbox):
-    def inner(user="u", box="INBOX", **kwargs):
+    def inner(user="u", box="INBOX", subject="subject", **kwargs):
         if "to" in kwargs:
             assert isinstance(kwargs["to"], list), "`to` must be a list"
         payload = (
@@ -46,7 +46,7 @@ def make_message(mailbox):
                         **{
                             "to": ["to@ok.com"],
                             "from_": "from@ok.com",
-                            "subject": "subject",
+                            "subject": subject,
                         },
                         **kwargs,
                     }
