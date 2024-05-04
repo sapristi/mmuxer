@@ -23,6 +23,7 @@ import json
 import logging
 import re
 import sys
+import traceback
 import uuid
 from collections import deque
 from copy import deepcopy
@@ -205,7 +206,7 @@ def critical_section(next_state):
 
 
 command_re = re.compile(
-    rb'((DONE)|(?P<tag>\w+) (?P<cmd>[\w]+)([\w \.#@:\*"\(\)\{\}\[\]\+\-\\\%/]+)?$)'
+    rb'((DONE)|(?P<tag>\w+) (?P<cmd>[\w]+)([\w \.#@:\*"\(\)\{\}\[\]\+\-\\\%/,]+)?$)'
 )
 FETCH_HEADERS_RE = re.compile(r".*BODY.PEEK\[HEADER.FIELDS \((?P<headers>.+)\)\].*")
 
@@ -248,6 +249,7 @@ class ImapProtocol(asyncio.Protocol):
             return
         for cmd_line in data.splitlines():
             if command_re.match(cmd_line) is None:
+                print("BAD Error in IMAP command : Unknown command (%r)." % cmd_line)
                 self.send_untagged_line(
                     "BAD Error in IMAP command : Unknown command (%r)." % cmd_line
                 )
@@ -278,7 +280,12 @@ class ImapProtocol(asyncio.Protocol):
             parameters = ["uid"] + command_array[2:]
         if not hasattr(self, command):
             return self.error(tag, 'Command "%s" not implemented' % command)
-        self.loop.call_later(self.delay_seconds, lambda: getattr(self, command)(tag, *parameters))
+        try:
+            getattr(self, command)(tag, *parameters)
+            # self.loop.call_later(self.delay_seconds, lambda: getattr(self, command)(tag, *parameters))
+        except Exception:
+            print(f"Failure when running {command} {tag} {parameters}")
+            traceback.print_exc(file=sys.stdout)
 
     def send_untagged_line(self, response, encoding="utf-8", continuation=False, max_chunk_size=0):
         self.send_raw_untagged_line(
@@ -502,6 +509,8 @@ class ImapProtocol(asyncio.Protocol):
             if end <= 0 or end < start:
                 raise InvalidUidSet()
             return range(start, end + 1)
+        elif "," in uid_pattern:
+            return [int(x) for x in uid_pattern.split(",")]
         return [int(uid_pattern)]
 
     def _build_fetch_response(self, message, parts, by_uid=True):
