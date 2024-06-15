@@ -36,12 +36,9 @@ jobs:
         with:
           python-version: 3.11
       - name: Set version
-        run: >-
+        run: |
           version=$(echo $GITHUB_REF | cut -d / -f 3)
           echo "will use version $version"
-          tree || true
-          ls -la
-          ls -la mmuxer
           sed -i "s/__version__ = .*/__version__ = \"$version\"/g" mmuxer/__init__.py
 
       - name: Publish package distributions to PyPI
