@@ -47,7 +47,7 @@ jobs:
   #       run: |
   #         pytest
 
-jobs:
+
   test-set version:
     name: test set version
     runs-on: ubuntu-latest
