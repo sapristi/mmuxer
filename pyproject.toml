@@ -49,7 +49,7 @@ build-backend = "pdm.backend"
 
 [project.optional-dependencies]
 systemd = [
-     "cysystemd >= 1.5.0"
+    "cysystemd>=1.6.2",
 ]
 
 [tool.setuptools]
