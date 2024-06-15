@@ -48,7 +48,7 @@ jobs:
   #         pytest
 
 
-  test-set version:
+  test-set-version:
     name: test set version
     runs-on: ubuntu-latest
     steps:
