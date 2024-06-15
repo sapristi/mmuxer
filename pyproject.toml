@@ -24,6 +24,9 @@ classifiers = [
 ]
 dynamic = ["version"]
 
+[project.urls]
+"Homepage" = "https://github.com/sapristi/mmuxer"
+
 [tool.pdm.version]
 source = "file"
 path = "mmuxer/__init__.py"
