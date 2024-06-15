@@ -57,7 +57,7 @@ jobs:
         with:
           python-version: 3.11
       - name: Set version
-        run: >-
+        run: |
           version=v0.0.1
           echo "will use version $version"
           tree || true
