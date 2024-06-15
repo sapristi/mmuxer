@@ -29,7 +29,7 @@ dynamic = ["version"]
 
 [tool.pdm.version]
 source = "file"
-path = "mmuxer/__init__.py"
+path = "__init__.py"
 
 [tool.pdm.dev-dependencies]
 dev = [
