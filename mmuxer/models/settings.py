@@ -7,9 +7,12 @@ from mmuxer.models.common import BaseModel
 
 def in_container():
     """Returns: True iff running in a container"""
-    with open("/proc/1/cgroup") as ifh:
-        value = ifh.read()
-        return "docker" in value or "kubepod" in value
+    try:
+        with open("/proc/1/cgroup") as ifh:
+            value = ifh.read()
+            return "docker" in value or "kubepod" in value
+    except:
+        return False
 
 
 class Settings(BaseModel, BaseSettings):
