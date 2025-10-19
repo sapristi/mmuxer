@@ -9,8 +9,7 @@ readme = "README.md"
 requires-python = ">=3.9,<3.13" # < 3.13 for compat with current version of pydantic-core
 
 dependencies = [
-    "typer[all]>=0.7, <0.8",
-    "click < 8.2.0",  # click>=8.2.0 breaks typer<0.16.0 (see https://github.com/fastapi/typer/pull/1225)
+    "typer[all]>0.19, <0.20",
     "pydantic>2",
     "pydantic-settings",
     "pyyaml",
