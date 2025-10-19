@@ -11,7 +11,7 @@ def in_container():
         with open("/proc/1/cgroup") as ifh:
             value = ifh.read()
             return "docker" in value or "kubepod" in value
-    except:
+    except FileNotFoundError:
         return False
 
 
