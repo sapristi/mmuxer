@@ -84,7 +84,7 @@ Examples:
     FROM: example@email.org
   actions:
    - action: flag
-   - flag: SEEN
+     flag: SEEN
 ```
 
 ```yaml
@@ -92,7 +92,7 @@ Examples:
     FROM: example@email.org
   actions:
    - action: unflag
-   - flag: SEEN
+     flag: SEEN
 ```
 
 ### Pre-configured actions
