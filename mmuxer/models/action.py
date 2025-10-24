@@ -59,8 +59,8 @@ class MoveAction(BaseAction):
     def to_sieve(self):
         from mmuxer.config_state import state
 
-        dest = state.settings.sieve_folder_prefix + self.dest.replace(
-            "/", state.settings.sieve_folder_separator
+        dest = state.settings.sieve.folder_prefix + self.dest.replace(
+            "/", state.settings.sieve.folder_separator
         )
         return f'fileinto "{dest}"'
 
