@@ -2,11 +2,10 @@ from pathlib import Path
 
 import typer
 from rich import print
-from rich.console import Console
 from rich.pretty import Node, pretty_repr
 
 from mmuxer.config_state import state
-from mmuxer.utils import config_file_typer_option
+from mmuxer.utils import config_file_typer_option, progress_when_tty
 
 
 def setup_callback(
@@ -96,17 +95,22 @@ def create_missing_folders():
 def move_emails(source_folder: str, dest_folder: str):
     """Move all emails in `source_folder` to `dest_folder`"""
 
-    console = Console()
     if source_folder == dest_folder:
         print(f"[bold red]Error: same source and dest: {source_folder}")
         raise typer.Abort()
     box = state.mailbox
     box.folder.set(source_folder)
     nb_moved = 0
-    with console.status(f"[bold green]Moved {nb_moved} emails...") as status:
+    total_emails = len(box.numbers())
+    with progress_when_tty() as progress:
+        task = progress.add_task("[bold blue]Preparing to move emails...", total=total_emails)
         for msg in box.fetch(bulk=100, mark_seen=False):
             box.move(msg.uid, dest_folder)
             nb_moved += 1
-            status.update(status=f"[bold green]Moved {nb_moved} emails...")
+            progress.update(
+                task,
+                description=f"[bold blue]Moved {nb_moved}/{total_emails} emails...",
+                advance=1,
+            )
 
-    print(f"[bold green]Moved {nb_moved} emails.")
+    print(f"[bold green]Moved {nb_moved}/{total_emails} emails.")

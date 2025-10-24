@@ -1,11 +1,16 @@
 import logging
+import sys
 from collections import Counter
+from contextlib import contextmanager
 from pathlib import Path
+from unittest.mock import Mock
 
 import typer
 import yaml
 from imap_tools import MailMessage
 from pydantic import ValidationError
+from rich.console import Console
+from rich.progress import Progress
 
 config_file_typer_option = typer.Option(
     Path("config.yaml"), exists=True, dir_okay=False, readable=True, resolve_path=True
@@ -100,3 +105,24 @@ class ParseException(Exception):
 
 def format_message(msg: MailMessage):
     return f"[{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
+
+
+@contextmanager
+def status_when_tty(status_line):
+    """Rich status when a tty, otherwise a Mock"""
+    if sys.stdout.isatty():
+        console = Console()
+        with console.status(status_line) as status:
+            yield status
+    else:
+        yield Mock()
+
+
+@contextmanager
+def progress_when_tty():
+    """Rich progress when a tty, otherwise a Mock"""
+    if sys.stdout.isatty():
+        with Progress() as progress:
+            yield progress
+    else:
+        yield Mock()
