@@ -17,6 +17,7 @@ dependencies = [
     "certifi",
     "watchfiles >= 0.18",
     "boolean.py >= 4.0",
+    "sievelib>=1.4.2",
 ]
 
 classifiers = [

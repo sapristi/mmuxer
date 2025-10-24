@@ -12,6 +12,7 @@ from typer.core import TyperGroup
 import mmuxer
 
 from .cli.folder import app as folder_app
+from .cli.managesieve import app as managesieve_app
 from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
 from .cli.sieve_export import sieve_export
@@ -81,6 +82,7 @@ def check(config_file: Path = config_file_typer_option):
 
 
 app.add_typer(folder_app, rich_help_panel="Util commands")
+app.add_typer(managesieve_app, rich_help_panel="ManageSieve commands")
 
 if __name__ == "__main__":
     app()

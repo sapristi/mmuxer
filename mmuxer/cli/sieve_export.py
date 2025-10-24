@@ -19,9 +19,10 @@ def sieve_export(
     """Convert the rules of the give config file to sieve format."""
     state.load_config_file(config_file)
     rules_str = "\n".join(sieve_rule for rule in state.rules for sieve_rule in rule.to_sieve())
-    output = f"""require ["fileinto","imap4flags","regex"];
+    sieve_extensions = ",".join(f'"{ext_name}"' for ext_name in state.settings.sieve.extensions)
+    output = f"""require [{sieve_extensions}];
 {rules_str}
-    """
+"""
     if dest_file is None:
         print(output)
     else:
