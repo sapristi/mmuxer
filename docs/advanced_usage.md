@@ -95,6 +95,16 @@ Examples:
      flag: SEEN
 ```
 
+Using custom flags is also supported:
+```yaml
+- condition:
+    FROM: example@email.org
+  actions:
+   - action: flag
+     custom_flag: MYCUSTOMFLAG
+```
+
+
 ### Pre-configured actions
 
 It is possible to define actions globally, and re-use them across the rules:

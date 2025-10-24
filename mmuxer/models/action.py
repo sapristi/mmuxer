@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Literal, Union
 
 from imap_tools import BaseMailBox, MailMessage
-from pydantic import RootModel
+from pydantic import RootModel, model_validator
 
 from mmuxer.utils import format_message
 
@@ -80,30 +80,56 @@ class DeleteAction(BaseAction):
 
 class FlagAction(BaseAction):
     action: Literal["flag"] = "flag"
-    flag: Flag
+    flag: Flag | None = None
+    custom_flag: str | None = None
+
+    @model_validator(mode="after")
+    def validate_flag_fields(self):
+        """Ensure that either flag or custom_flag is set, but not both."""
+        if self.flag is None and self.custom_flag is None:
+            raise ValueError("Either 'flag' or 'custom_flag' must be set")
+        if self.flag is not None and self.custom_flag is not None:
+            raise ValueError("Only one of 'flag' or 'custom_flag' can be set, not both")
+        return self
 
     def _apply(self, mailbox: BaseMailBox, message: MailMessage):
-        mailbox.flag([message.uid], flag_set={self.flag.imap}, value=True)
+        flag_name = self.flag.imap if self.flag else self.custom_flag
+        mailbox.flag([message.uid], flag_set={flag_name}, value=True)
 
     def format(self, message):
-        return f"FLAG {format_message(message)} {self.flag.name}"
+        flag_display = self.flag.name if self.flag else self.custom_flag
+        return f"FLAG {format_message(message)} {flag_display}"
 
     def to_sieve(self):
-        return f'setflag "{self.flag.sieve}"'
+        flag_name = self.flag.sieve if self.flag else self.custom_flag
+        return f'setflag "{flag_name}"'
 
 
 class UnflagAction(BaseAction):
-    action: Literal["flag"] = "flag"
-    flag: Flag
+    action: Literal["unflag"] = "unflag"
+    flag: Flag | None = None
+    custom_flag: str | None = None
+
+    @model_validator(mode="after")
+    def validate_flag_fields(self):
+        """Ensure that either flag or custom_flag is set, but not both."""
+        if self.flag is None and self.custom_flag is None:
+            raise ValueError("Either 'flag' or 'custom_flag' must be set")
+        if self.flag is not None and self.custom_flag is not None:
+            raise ValueError("Only one of 'flag' or 'custom_flag' can be set, not both")
+        return self
 
     def _apply(self, mailbox: BaseMailBox, message: MailMessage):
-        mailbox.flag([message.uid], flag_set={self.flag.imap}, value=False)
+        flag_name = self.flag.imap if self.flag else self.custom_flag
+        mailbox.flag([message.uid], flag_set={flag_name}, value=False)
 
     def format(self, message):
-        return f"UNFLAG {format_message(message)} {self.flag.name}"
+        flag_display = self.flag.name if self.flag else self.custom_flag
+        return f"UNFLAG {format_message(message)} {flag_display}"
 
     def to_sieve(self):
-        return f'removeflag "{self.flag.sieve}"'
+        flag_name = self.flag.sieve if self.flag else self.custom_flag
+        return f'removeflag "{flag_name}"'
 
 
 Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]
