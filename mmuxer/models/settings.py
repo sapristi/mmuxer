@@ -19,7 +19,7 @@ def in_container():
 class SieveSettings(BaseModel):
     folder_prefix: str = ""  # folder prefix used when generating sieve rules
     folder_separator: str = "/"  # folder separator used when generating sieve rules
-    script_name: str | None = None  # name used when exporting with managesieve
+    name: str | None = None  # name used when exporting with managesieve
     extensions: list[str] = Field(default_factory=lambda: ["fileinto"])
 
 

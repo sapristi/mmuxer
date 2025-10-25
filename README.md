@@ -58,6 +58,17 @@ Mail Muxer is a Python tool that will monitor your Inbox, and filter incomming e
 
        mmuxer monitor --help
 
+## Sieve interraction
+
+MMuxer allows you to interract with sieves with the `mmuxer sieve` commands:
+
+- `list`:     List sieve scripts on the server.
+- `put`:      Upload a sieve script generated from rules to the server.
+- `export`:   Convert the rules of the give config file to sieve format.
+
+Note that server support of `managesieve` commands is necessary for  `list` and `put` commands to work.
+
+
 ## Settings
 
 ### Using env variables for settings
@@ -81,8 +92,12 @@ If you get SSL errors while connecting to your server, see the [SSL Configuratio
     password: str
     ssl_ciphers: Optional[str] = None
     imap_wait_timeout: int = 60
-    sieve_folder_prefix: str = ""  # folder prefix used when generating sieve rules
-    sieve_folder_separator: str = "/"  # folder separator used when generating sieve rules
+
+    sieve:
+      folder_prefix: str = ""  # folder prefix used when generating sieve rules
+      folder_separator: str = "."  # folder separator used when generating sieve rules
+      name: str | None = None  # name used when exporting with managesieve
+      extensions: list[str] = ["fileinto"]
 
 ## Going further on
 
