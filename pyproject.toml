@@ -18,6 +18,7 @@ dependencies = [
     "watchfiles >= 0.18",
     "boolean.py >= 4.0",
     "sievelib>=1.4.2",
+    "more-itertools>=10.8.0",
 ]
 
 classifiers = [

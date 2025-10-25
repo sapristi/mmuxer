@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import more_itertools
 import typer
 from rich import print
 from rich.pretty import Node, pretty_repr
@@ -104,13 +105,13 @@ def move_emails(source_folder: str, dest_folder: str):
     total_emails = len(box.numbers())
     with progress_when_tty() as progress:
         task = progress.add_task("[bold blue]Preparing to move emails...", total=total_emails)
-        for msg in box.fetch(bulk=100, mark_seen=False):
-            box.move(msg.uid, dest_folder)
-            nb_moved += 1
+        for chunk in more_itertools.chunked(box.uids(), 50):
+            box.move(chunk, dest_folder)
+            nb_moved += len(chunk)
             progress.update(
                 task,
                 description=f"[bold blue]Moved {nb_moved}/{total_emails} emails...",
-                advance=1,
+                advance=len(chunk),
             )
 
     print(f"[bold green]Moved {nb_moved}/{total_emails} emails.")
