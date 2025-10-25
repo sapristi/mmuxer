@@ -75,7 +75,7 @@ Allow to either set or unset an IMAP flag to a message. Possible flags are:
 - `SEEN`
 - `ANSWERED`
 - `FLAGGED` (often marked as a star in UIs)
-- `DELETED` (will delete the message)
+- `DELETED` (will flag the message for deletion)
 - `DRAFT`
 
 Examples:
