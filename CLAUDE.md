@@ -91,7 +91,7 @@ mmuxer sieve-export --config-file config.yaml --dest-file rules.sieve
 - Parse errors formatted with context using custom `ParseException`
 
 **Sieve Export**:
-- Rules and conditions implement `to_sieve_str()` methods
+- Rules and conditions implement `to_sieve()` methods
 - Exported rules maintain same logic as IMAP implementation
 
 ### Testing Infrastructure

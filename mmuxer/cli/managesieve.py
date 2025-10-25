@@ -59,7 +59,7 @@ def put(
     settings = state.settings
 
     # Generate script content from rules
-    rules_str = "\n".join(sieve_rule for rule in state.rules for sieve_rule in rule.to_sieve_str())
+    rules_str = "\n".join(sieve_rule for rule in state.rules for sieve_rule in rule.to_sieve())
     sieve_extensions = ",".join(f'"{ext_name}"' for ext_name in settings.sieve.extensions)
     script_content = f"""require [{sieve_extensions}];
 {rules_str}
