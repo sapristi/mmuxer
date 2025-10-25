@@ -23,7 +23,9 @@ def _tidy(
     total_emails = len(box.numbers())
     with progress_when_tty() as progress:
         task = progress.add_task("[bold blue]Preparing to tidy emails...", total=total_emails)
-        for msg in box.fetch(bulk=100, mark_seen=False, headers_only=True):
+        for msg in box.fetch(bulk=100, mark_seen=False):
+            # TODO: use headers_only=True for perf gains - however needs
+            # to handle case where filter depends on body, and somehow fix tests
             msg.associated_folder = folder
             apply_list(state.rules, box, msg, dry_run)
             for script in state.scripts:
