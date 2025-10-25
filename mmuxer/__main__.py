@@ -13,6 +13,7 @@ import mmuxer
 
 from .cli.folder import app as folder_app
 from .cli.managesieve import app as managesieve_app
+from .cli.purge import purge as purge_cmd
 from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
 from .cli.sieve_export import sieve_export
@@ -71,6 +72,7 @@ app = typer.Typer(
 app.command(rich_help_panel="Main commands")(monitor_cmd)
 app.command(rich_help_panel="Main commands")(tidy_cmd)
 app.command(rich_help_panel="Main commands")(sieve_export)
+app.command(rich_help_panel="Main commands", hidden=True)(purge_cmd)
 
 
 @app.command(rich_help_panel="Util commands")

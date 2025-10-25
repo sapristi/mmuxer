@@ -23,7 +23,7 @@ def _tidy(
     total_emails = len(box.numbers())
     with progress_when_tty() as progress:
         task = progress.add_task("[bold blue]Preparing to tidy emails...", total=total_emails)
-        for msg in box.fetch(bulk=100, mark_seen=False):
+        for msg in box.fetch(bulk=100, mark_seen=False, headers_only=True):
             msg.associated_folder = folder
             apply_list(state.rules, box, msg, dry_run)
             for script in state.scripts:
