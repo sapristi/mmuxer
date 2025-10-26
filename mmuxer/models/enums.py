@@ -35,3 +35,6 @@ class Flag(Enum):
     @property
     def sieve(self):
         return "\\\\" + self.name.capitalize()
+
+    def __repr__(self):
+        return self.name

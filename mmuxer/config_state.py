@@ -12,7 +12,7 @@ from imap_tools.mailbox import BaseMailBox
 from mmuxer.mailbox import MailBox
 from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mmuxer.models.enums import Flag
-from mmuxer.models.purge_policy import PurgePolicy
+from mmuxer.models.operation import Operation
 from mmuxer.models.rule import Rule
 from mmuxer.models.script import PythonScript
 from mmuxer.models.settings import Settings
@@ -45,7 +45,7 @@ class State:
         "_scripts",
         "_mailbox",
         "_config_file",
-        "_purge_policies",
+        "_operations",
         "actions",
     )
 
@@ -55,7 +55,7 @@ class State:
         self._scripts = None
         self._mailbox = None
         self._config_file = None
-        self._purge_policies = []
+        self._operations = []
         self.actions: dict[str, Action] = default_actions
 
     def load_config_file(self, config_file: Path):
@@ -94,7 +94,7 @@ class State:
             logger.error("The config should be mapping. 'settings' is a required key")
             exit(1)
 
-        all_keys = {"rules", "actions", "scripts", "settings", "purge_policies"}
+        all_keys = {"rules", "actions", "scripts", "settings", "operations"}
         extra_keys = config_dict.keys() - all_keys
         if extra_keys:
             logger.warning(f"The following keys in the config are not recognized: {extra_keys}")
@@ -137,11 +137,11 @@ class State:
                 logger.error(exc.format("the following script entry"))
                 exit(1)
 
-        for purge_policy_data in config_dict.get("purge_policies", []):
+        for operation_data in config_dict.get("operations", []):
             try:
-                self._purge_policies.append(PurgePolicy.parse_data(purge_policy_data))
+                self._operations.append(Operation.parse_data(operation_data))
             except ParseException as exc:
-                logger.error(exc.format("the following purge policy entry"))
+                logger.error(exc.format("the following operation entry"))
                 exit(1)
 
     @property
@@ -175,10 +175,10 @@ class State:
         return self._scripts
 
     @property
-    def purge_policies(self) -> list[PurgePolicy]:
-        if self._purge_policies is None:
-            raise Exception("Uninitialized mailbox")
-        return self._purge_policies
+    def operations(self) -> list[Operation]:
+        if self._operations is None:
+            raise Exception("Uninitialized operations")
+        return self._operations
 
 
 state = State()

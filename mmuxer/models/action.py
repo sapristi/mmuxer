@@ -64,6 +64,9 @@ class MoveAction(BaseAction):
         )
         return f'fileinto "{dest}"'
 
+    def __rich_repr__(self):
+        yield "destination", self.dest
+
 
 class DeleteAction(BaseAction):
     action: Literal["delete"] = "delete"
@@ -76,6 +79,9 @@ class DeleteAction(BaseAction):
 
     def to_sieve(self):
         return "discard"
+
+    def __rich_repr__(self):
+        pass
 
 
 class FlagAction(BaseAction):
@@ -104,6 +110,12 @@ class FlagAction(BaseAction):
         flag_name = self.flag.sieve if self.flag else self.custom_flag
         return f'setflag "{flag_name}"'
 
+    def __rich_repr__(self):
+        if self.flag:
+            yield self.flag
+        if self.custom_flag:
+            yield self.custom_flag
+
 
 class UnflagAction(BaseAction):
     action: Literal["unflag"] = "unflag"
@@ -130,6 +142,12 @@ class UnflagAction(BaseAction):
     def to_sieve(self):
         flag_name = self.flag.sieve if self.flag else self.custom_flag
         return f'removeflag "{flag_name}"'
+
+    def __rich_repr__(self):
+        if self.flag:
+            yield self.flag
+        if self.custom_flag:
+            yield self.custom_flag
 
 
 Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]
