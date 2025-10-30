@@ -99,6 +99,17 @@ If you get SSL errors while connecting to your server, see the [SSL Configuratio
       name: str | None = None  # name used when exporting with managesieve
       extensions: list[str] = ["fileinto"]
 
+## Encoding
+
+Reading a file in python default to whatever [locale.getencoding()](https://docs.python.org/3/library/locale.html#locale.getencoding) returns.
+If you need to parse your config file in a different encoding,  specify this 
+with the `--encoding` parameter:
+
+       mmuxer tidy --config-file config.yaml --encoding uft-8
+
+See the [documentation](https://docs.python.org/3/library/codecs.html#standard-encodings)
+for a full list of all supported encodings.
+
 ## Going further on
 
 - [Advanced usage](./docs/advanced_usage.md)
