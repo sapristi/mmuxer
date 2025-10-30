@@ -40,6 +40,7 @@ default_actions = {
 
 class State:
     __slots__ = (
+        "_encoding",
         "_settings",
         "_rules",
         "_scripts",
@@ -50,6 +51,7 @@ class State:
     )
 
     def __init__(self):
+        self._encoding = None
         self._settings = None
         self._rules = None
         self._scripts = None
@@ -83,7 +85,7 @@ class State:
         logger.info(f"Connected to {self.settings.server} with {self.settings.username}")
 
     def _parse_config_file(self):
-        config_raw = self.config_file.read_text()
+        config_raw = self.config_file.read_text(encoding=self._encoding)
         try:
             config_dict = yaml.safe_load(config_raw)
         except Exception:
@@ -149,6 +151,14 @@ class State:
         if self._config_file is None:
             raise Exception("Uninitialized config_file")
         return self._config_file
+
+    @property
+    def encoding(self) -> str:
+        return self.encoding
+
+    @encoding.setter
+    def encoding(self, value: str) -> None:
+        self._encoding = value
 
     @property
     def settings(self) -> Settings:

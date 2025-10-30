@@ -43,8 +43,10 @@ def tidy(
     config_file: Path = config_file_typer_option,
     folder: Union[str, None] = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
+    encoding: str = typer.Option(None, help="Encoding to use when parsing config file"),
 ):
     """Run once, on all messages of the INBOX (or the given folder)."""
+    state.encoding = encoding
     state.load_config_file(config_file)
     state.create_mailbox()
     _tidy(folder, dry_run)
@@ -57,8 +59,10 @@ def monitor(
     auto_reload: bool = typer.Option(
         False, help="Auto-reload config file on modification (EXPERIMENTAL)"
     ),
+    encoding: str = typer.Option(None, help="Encoding to use when parsing config file"),
 ):
     """Monitor mailbox, and apply rules on unseen messages."""
+    state.encoding = encoding
     state.load_config_file(config_file)
     state.create_mailbox()
 

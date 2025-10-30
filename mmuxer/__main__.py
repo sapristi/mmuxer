@@ -75,8 +75,9 @@ app.command(rich_help_panel="Main commands", hidden=True)(purge_cmd)
 
 
 @app.command(rich_help_panel="Util commands")
-def check(config_file: Path = config_file_typer_option):
+def check(config_file: Path = config_file_typer_option, encoding: str = None):
     """Load the config and connect to the IMAP server."""
+    state.encoding = encoding
     state.load_config_file(config_file)
     state.create_mailbox()
     pprint(state.rules)
