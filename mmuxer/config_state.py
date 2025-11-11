@@ -13,7 +13,7 @@ from mmuxer.mailbox import MailBox
 from mmuxer.models.action import Action, ActionLoader, DeleteAction, FlagAction, MoveAction
 from mmuxer.models.enums import Flag
 from mmuxer.models.operation import Operation
-from mmuxer.models.rule import Rule
+from mmuxer.models.rule import Rule, RuleSet
 from mmuxer.models.script import PythonScript
 from mmuxer.models.settings import Settings
 from mmuxer.utils import ParseException
@@ -113,7 +113,7 @@ class State:
             except ParseException as exc:
                 logger.error(exc.format("the following rules entry"))
                 sys.exit(1)
-        self._rules = parsed_rules
+        self._rules = RuleSet(parsed_rules)
 
         if "actions" in config_dict:
             if not isinstance(config_dict["actions"], dict):
@@ -127,7 +127,7 @@ class State:
                 except ParseException as exc:
                     logger.error(exc.format("the following action entry"))
                     sys.exit(1)
-            self._rules = parsed_rules
+            # self._rules = parsed_rules
 
         self._scripts = []
         for script_data in config_dict.get("scripts", []):
@@ -157,7 +157,7 @@ class State:
         return self._settings
 
     @property
-    def rules(self) -> List[Rule]:
+    def rules(self) -> RuleSet:
         if self._rules is None:
             raise Exception("Uninitialized rules")
         return self._rules

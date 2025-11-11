@@ -53,6 +53,9 @@ class IBaseCondition(BaseModel):
         """Comparison: used for using with boolean.py"""
         return repr(self).__lt__(repr(other))
 
+    def needs_body(self):
+        return False
+
 
 class From(IBaseCondition):
     FROM: Union[str, frozenset[str]]
@@ -109,6 +112,9 @@ class Body(IBaseCondition):
         """Used to render sieve files"""
         return f'body :text {self.operator.sieve} "{self.get_operand()}'
 
+    def needs_body(self):
+        return True
+
 
 BaseCondition = Union[From, To, Subject, Body]
 
@@ -133,6 +139,9 @@ class All(BaseModel):
         for item in self.ALL:
             yield item
 
+    def needs_body(self):
+        return any(operand.needs_body() for operand in self.ALL)
+
 
 class Any(BaseModel):
     ANY: List[Union[BaseCondition, All, Any, Not]]
@@ -144,6 +153,9 @@ class Any(BaseModel):
         for item in self.ANY:
             yield item
 
+    def needs_body(self):
+        return any(operand.needs_body() for operand in self.ANY)
+
 
 class Not(BaseModel):
     NOT: Union[BaseCondition, All, Any, Not]
@@ -154,6 +166,9 @@ class Not(BaseModel):
     def to_sieve(self) -> str:
         """Used to render sieve files"""
         return f"not {self.NOT.to_sieve()}"
+
+    def needs_body(self):
+        return self.NOT.needs_body()
 
 
 All.model_rebuild()

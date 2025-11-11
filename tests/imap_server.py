@@ -36,6 +36,7 @@ from functools import update_wrapper
 from math import ceil
 from operator import attrgetter
 
+from devtools import debug
 from pytz import utc
 
 log = logging.getLogger(__name__)
@@ -138,7 +139,7 @@ class ServerState(object):
         return [mb for mb in self.subcriptions[user] if mb_re.match(mb)]
 
     def list(self, user, reference, mailbox_pattern):
-        print(f"LIST '{user}' '{reference}' '{mailbox_pattern}'")
+        debug(f"LIST '{user}' '{reference}' '{mailbox_pattern}'")
         user_boxes = self.mailboxes[user]
         mb_re = re.compile(mailbox_pattern)
         return sorted(
@@ -220,13 +221,13 @@ class ImapProtocol(asyncio.Protocol):
         server_state,
         fetch_chunk_size=0,
         capabilities=CAPABILITIES,
-        loop=asyncio.get_event_loop(),
+        loop=None,
     ):
         self.uidvalidity = int(datetime.now().timestamp())
         self.capabilities = capabilities
         self.state_to_send = list()
         self.delay_seconds = 0
-        self.loop = loop
+        self.loop = loop or asyncio.get_event_loop()
         self.fetch_chunk_size = fetch_chunk_size
         self.transport = None
         self.server_state = server_state
@@ -243,26 +244,26 @@ class ImapProtocol(asyncio.Protocol):
         transport.write("* OK IMAP4rev1 MockIMAP Server ready\r\n".encode())
 
     def data_received(self, data):
-        print("DATA received", data, self.user_login)
+        # debug("DATA received", data, self.user_login)
         if self.append_literal_command is not None:
             self.append_literal(data)
             return
         for cmd_line in data.splitlines():
             if command_re.match(cmd_line) is None:
-                print("BAD Error in IMAP command : Unknown command (%r)." % cmd_line)
+                debug("BAD Error in IMAP command : Unknown command (%r)." % cmd_line)
                 self.send_untagged_line(
                     "BAD Error in IMAP command : Unknown command (%r)." % cmd_line
                 )
             else:
                 command_array = [token.strip('"') for token in cmd_line.decode().rstrip().split()]
-                print("COMMANd", command_array)
+                # debug("COMMANd", command_array)
                 if self.state is not IDLE:
                     tag = command_array[0]
                     self.exec_command(tag, command_array[1:])
                 else:
                     self.exec_command(None, command_array)
-        print("END DATA received", data)
-        print()
+        debug("END DATA received", data)
+        debug()
 
     def connection_lost(self, error):
         if error:
@@ -284,7 +285,7 @@ class ImapProtocol(asyncio.Protocol):
             getattr(self, command)(tag, *parameters)
             # self.loop.call_later(self.delay_seconds, lambda: getattr(self, command)(tag, *parameters))
         except Exception:
-            print(f"Failure when running {command} {tag} {parameters}")
+            debug(f"Failure when running {command} {tag} {parameters}")
             traceback.print_exc(file=sys.stdout)
 
     def send_untagged_line(self, response, encoding="utf-8", continuation=False, max_chunk_size=0):
@@ -360,9 +361,9 @@ class ImapProtocol(asyncio.Protocol):
         mailbox_name = args[0]
         self.server_state.create_mailbox_if_not_exists(self.user_login, mailbox_name)
         mailbox = self.server_state.get_mailbox_messages(self.user_login, mailbox_name)
-        self.send_untagged_line("FLAGS (\Answered \Flagged \Deleted \Seen \Draft)")
+        self.send_untagged_line("FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)")
         self.send_untagged_line(
-            "OK [PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft \*)] Flags permitted."
+            "OK [PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft \\*)] Flags permitted."
         )
         self.send_untagged_line("{nb_messages} EXISTS".format(nb_messages=len(mailbox)))
         self.send_untagged_line("{nb_messages} RECENT".format(nb_messages=0))
@@ -462,7 +463,7 @@ class ImapProtocol(asyncio.Protocol):
                 elif arg_list[1] == "-FLAGS":
                     message.flags = list(set(message.flags) - set(flags))
                 else:
-                    print("WTF", arg_list[1])
+                    debug("WTF", arg_list[1])
                 self.send_untagged_line(
                     "{uid} FETCH (UID {uid} FLAGS ({flags}))".format(
                         uid=uid, flags=" ".join(message.flags)
@@ -490,7 +491,7 @@ class ImapProtocol(asyncio.Protocol):
                 if "BODY.PEEK" not in parts_str and (
                     "BODY[]" in parts_str or "RFC822" in parts_str
                 ):
-                    message.flags.append("\Seen")
+                    message.flags.append("\\Seen")
                 self.send_raw_untagged_line(response)
         self.send_tagged_line(tag, "OK FETCH completed.")
 
@@ -519,6 +520,8 @@ class ImapProtocol(asyncio.Protocol):
             if by_uid
             else ("%d FETCH (" % message.id).encode()
         )
+
+        debug(parts)
         for part in parts:
             if part.startswith("(") or part.endswith(")"):
                 part = part.strip("()")
@@ -541,11 +544,20 @@ class ImapProtocol(asyncio.Protocol):
                         "BODY[HEADER.FIELDS (%s)] {%d}\r\n"
                         % (headers, len(message_headers.as_bytes()))
                     ).encode() + message_headers.as_bytes()
+            if part == "BODY.PEEK[HEADER]":
+                message_headers = Message(policy=Compat32(linesep="\r\n"))
+                for header, value in message.email.items():
+                    message_headers[header] = value
+                headers_len = len(message_headers.as_bytes())
+                response += (
+                    f"BODY[HEADER] {headers_len}\r\n"
+                ).encode() + message_headers.as_bytes()
+
             if part == "FLAGS":
                 response += ("FLAGS (%s)" % " ".join(message.flags)).encode()
         response = response.strip(b" ")
         response += b")"
-        print("RESP", response.decode())
+        debug(response.decode())
         return response
 
     def append(self, tag, *args):
@@ -690,7 +702,7 @@ class ImapProtocol(asyncio.Protocol):
     def receive(self, tag, *args):
         [user, mailbox, payload] = args
         kwargs = json.loads(base64.b32decode(payload.replace("a", "=")))
-        print("CREATE MSG kwargs", kwargs)
+        debug(CREATE_MSG_kwargs=kwargs)
         mail = Mail.create(**{k: v for k, v in kwargs.items() if v is not None})
         self.server_state.imap_receive(user, mail, mailbox)
         self.send_tagged_line(tag, "OK RECEIVE completed.")
@@ -700,7 +712,7 @@ class ImapProtocol(asyncio.Protocol):
         self.send_tagged_line(tag, "OK CLEAR completed.")
 
     def printdebug(self, tag, *args):
-        print(self.server_state.mailboxes)
+        debug(self.server_state.mailboxes)
         self.send_tagged_line(tag, "OK PRINTDEBUG completed.")
 
     def subscribe(self, tag, *args):
@@ -906,8 +918,8 @@ class Mail(object):
         msg["User-Agent"] = "python3"
         msg["MIME-Version"] = "1.0"
         msg["To"] = ", ".join(to)
-        print("TO MESSAGE", msg["To"])
-        msg["Subject"] = Header(subject, encoding)
+        debug("TO MESSAGE", msg["To"])
+        msg["Subject"] = str(Header(subject, encoding))
         if in_reply_to is not None:
             msg["In-Reply-To"] = "<%s>" % in_reply_to
         if cc is not None:
@@ -948,6 +960,6 @@ class Mail(object):
 #         return imap_client
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    server = MockImapServer().run_server()
+    loop = asyncio.new_event_loop()
+    server = MockImapServer(loop=loop).run_server()
     loop.run_forever()

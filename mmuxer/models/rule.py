@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from imap_tools import BaseMailBox, MailMessage
-from pydantic import Field
+from pydantic import Field, RootModel
 
 from .action import Action, MoveAction
 from .common import BaseModel
@@ -71,8 +71,16 @@ class Rule(BaseModel):
         ]
 
 
-def apply_list(rules: List[Rule], mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
-    for rule in rules:
-        applied = rule.apply(mailbox, message, dry_run)
-        if applied and not rule.keep_evaluating:
-            break
+class RuleSet(RootModel[list[Rule]]):
+
+    def __iter__(self):  # type: ignore
+        return iter(self.root)
+
+    def apply(self, mailbox: BaseMailBox, message: MailMessage, dry_run: bool):
+        for rule in self:
+            applied = rule.apply(mailbox, message, dry_run)
+            if applied and not rule.keep_evaluating:
+                break
+
+    def needs_body(self):
+        return any(rule.condition.needs_body() for rule in self)

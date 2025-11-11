@@ -39,6 +39,10 @@ class BaseAction(BaseModel):
             self._apply(mailbox, message)
 
     @abstractmethod
+    def bulk_apply(self, mailbox, uids):
+        pass
+
+    @abstractmethod
     def to_sieve(self) -> str:
         """Used to render sieve files"""
 
@@ -67,6 +71,9 @@ class MoveAction(BaseAction):
     def __rich_repr__(self):
         yield "destination", self.dest
 
+    def bulk_apply(self, mailbox, uids):
+        mailbox.move(uids, self.dest)
+
 
 class DeleteAction(BaseAction):
     action: Literal["delete"] = "delete"
@@ -82,6 +89,9 @@ class DeleteAction(BaseAction):
 
     def __rich_repr__(self):
         pass
+
+    def bulk_apply(self, mailbox, uids):
+        mailbox.delete(uids)
 
 
 class FlagAction(BaseAction):
@@ -116,6 +126,10 @@ class FlagAction(BaseAction):
         if self.custom_flag:
             yield self.custom_flag
 
+    def bulk_apply(self, mailbox, uids):
+        flag_name = self.flag.imap if self.flag else self.custom_flag
+        mailbox.flag(uids, flag_set={flag_name}, value=True)
+
 
 class UnflagAction(BaseAction):
     action: Literal["unflag"] = "unflag"
@@ -148,6 +162,10 @@ class UnflagAction(BaseAction):
             yield self.flag
         if self.custom_flag:
             yield self.custom_flag
+
+    def bulk_apply(self, mailbox, uids):
+        flag_name = self.flag.imap if self.flag else self.custom_flag
+        mailbox.flag(uids, flag_set={flag_name}, value=False)
 
 
 Action = Union[MoveAction, DeleteAction, FlagAction, UnflagAction]

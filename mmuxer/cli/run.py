@@ -5,7 +5,6 @@ from typing import Union
 import typer
 
 from mmuxer.config_state import state
-from mmuxer.models.rule import apply_list
 from mmuxer.utils import config_file_typer_option, progress_when_tty
 from mmuxer.workers import MonitorWorker, WatcherWorker
 
@@ -21,13 +20,17 @@ def _tidy(
         box.folder.set(folder)
     counter = 0
     total_emails = len(box.numbers())
+    kwargs = {}
+    if not state.rules.needs_body():
+        kwargs["headers_only"] = True
     with progress_when_tty() as progress:
         task = progress.add_task("[bold blue]Preparing to tidy emails...", total=total_emails)
-        for msg in box.fetch(bulk=100, mark_seen=False):
+        for msg in box.fetch(bulk=100, mark_seen=False, **kwargs):
             # TODO: use headers_only=True for perf gains - however needs
             # to handle case where filter depends on body, and somehow fix tests
+            # print([ header for header in msg.obj._headers if header[]])
             msg.associated_folder = folder
-            apply_list(state.rules, box, msg, dry_run)
+            state.rules.apply(box, msg, dry_run)
             for script in state.scripts:
                 script.apply(msg, dry_run=dry_run)
             counter += 1

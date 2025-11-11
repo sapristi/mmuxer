@@ -39,6 +39,7 @@ dev = [
     "pre-commit>=3.7.0",
     "pytest-bg-process",
     "pytz",
+    "devtools",
 ]
 
 

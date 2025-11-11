@@ -7,7 +7,6 @@ from imap_tools import AND
 from watchfiles import watch
 
 from .config_state import state
-from .models.rule import apply_list
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,8 @@ class MonitorWorker(Thread):
                         logger.info(
                             f"Found message [{{{msg.uid}}} {msg.from_} -> {msg.to} '{msg.subject}']"
                         )
-                        apply_list(state.rules, box, msg, self.dry_run)
+
+                        state.rules.apply(box, msg, self.dry_run)
                         for script in state.scripts:
                             script.apply(msg, dry_run=self.dry_run)
             except imaplib.IMAP4.abort:
