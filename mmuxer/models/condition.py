@@ -69,6 +69,17 @@ class From(IBaseCondition):
     def __rich_repr__(self):
         yield self.operator.name, self.FROM
 
+class Name(IBaseCondition):
+    NAME: Union[str, frozenset[str]]
+
+    def get_value(self, message: MailMessage):
+        return message.from_values.name
+
+    def get_operand(self) -> Union[str, Sequence[str]]:
+        return self.NAME
+
+    def __rich_repr__(self):
+        yield self.operator.name, self.NAME
 
 class To(IBaseCondition):
     TO: Union[str, frozenset[str]]
@@ -116,7 +127,7 @@ class Body(IBaseCondition):
         return True
 
 
-BaseCondition = Union[From, To, Subject, Body]
+BaseCondition = Union[From, Name, To, Subject, Body]
 
 
 def is_base_condition(obj):
