@@ -83,7 +83,7 @@ class State:
         logger.info(f"Connected to {self.settings.server} with {self.settings.username}")
 
     def _parse_config_file(self):
-        config_raw = self.config_file.read_text()
+        config_raw = self.config_file.read_text(encoding='utf-8')
         try:
             config_dict = yaml.safe_load(config_raw)
         except Exception:
