@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import date, timedelta
-from typing import ForwardRef
+from typing import Union
 
 from imap_tools.query import AND as imap_AND
 from imap_tools.query import NOT as imap_NOT
@@ -53,15 +55,11 @@ class Header(SearchCriteriaBase):
         return {"header": imap_HEADER(self.name, self.value)}
 
 
-SearchCriteria = HasFlag | HasCustomFlag | OlderThan | YoungerThan | Header
-
-All = ForwardRef("All")  # type: ignore
-Any = ForwardRef("Any")  # type: ignore
-Not = ForwardRef("Not")  # type: ignore
+SearchCriteria = Union[HasFlag, HasCustomFlag, OlderThan, YoungerThan, Header]
 
 
 class All(BaseModel):
-    ALL: list[SearchCriteria | All | Any | Not]
+    ALL: list[Union[SearchCriteria, All, Any, Not]]
 
     def to_search_condition(self):
         args = []
@@ -75,7 +73,7 @@ class All(BaseModel):
 
 
 class Any(BaseModel):
-    ANY: list[SearchCriteria | All | Any | Not]
+    ANY: list[Union[SearchCriteria, All, Any, Not]]
 
     def to_search_condition(self):
         args = []
@@ -89,7 +87,7 @@ class Any(BaseModel):
 
 
 class Not(BaseModel):
-    NOT: SearchCriteria | All | Any | Not
+    NOT: Union[SearchCriteria, All, Any, Not]
 
     def to_search_condition(self):
         args = []
@@ -102,18 +100,18 @@ class Not(BaseModel):
         return imap_NOT(*args, **kwargs)
 
 
-BoolOperator = All | Any | Not
+BoolOperator = Union[All, Any, Not]
 All.model_rebuild()
 Any.model_rebuild()
 Not.model_rebuild()
 
 
-SearchQuery = SearchCriteria | All | Any | Not
+SearchQuery = Union[SearchCriteria, All, Any, Not]
 
 
 class Operation(BaseModel):
     name: str
     folders: list[str]
-    query: SearchQuery | None = None
+    query: Union[SearchQuery, None] = None
     actions: list[Action]
     batch_size: int = 100
