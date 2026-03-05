@@ -27,7 +27,7 @@ pre-commit run --all-files
 
 ### Running commands
 
-To run a command, use `pdm run [cmd]`. The will load the virtualenv
+To run a command, use `uv run [cmd]`. The will load the virtualenv
 
 
 ### Running the Application
@@ -101,7 +101,7 @@ Tests use a mock IMAP server from `aioimaplib` (see `tests/imap_server.py`) star
 ## Python Environment
 
 - Requires Python 3.9-3.12 (constrained by pydantic-core compatibility)
-- Uses PDM for dependency management and building
+- Uses uv for dependency management and building
 - Key dependencies: typer, pydantic, imap-tools, watchfiles, sievelib
 - Line length: 99 characters (black/isort config)
 

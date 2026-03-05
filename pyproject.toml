@@ -29,11 +29,7 @@ dynamic = ["version"]
 [project.urls]
 "Homepage" = "https://github.com/sapristi/mmuxer"
 
-[tool.pdm.version]
-source = "file"
-path = "mmuxer/__init__.py"
-
-[tool.pdm.dev-dependencies]
+[dependency-groups]
 dev = [
     "pytest >= 7.0",
     "pre-commit>=3.7.0",
@@ -47,19 +43,16 @@ dev = [
 mmuxer = "mmuxer.__main__:app"
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "mmuxer/__init__.py"
 
 [project.optional-dependencies]
 systemd = [
     "cysystemd>=1.6.2",
 ]
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-include = ["mmuxer*"]
 
 [tool.pytest.ini_options]
 background-cmd="python tests/imap_server.py"
