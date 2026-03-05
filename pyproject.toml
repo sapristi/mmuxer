@@ -36,6 +36,7 @@ dev = [
     "pytest-bg-process",
     "pytz",
     "devtools",
+    "pyright>=1.1.408",
 ]
 
 
