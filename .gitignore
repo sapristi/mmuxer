@@ -9,4 +9,3 @@ config.yaml
 pdm.lock
 .pdm-python
 .venv
-uv.lock
