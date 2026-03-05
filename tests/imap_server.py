@@ -550,7 +550,7 @@ class ImapProtocol(asyncio.Protocol):
                     message_headers[header] = value
                 headers_len = len(message_headers.as_bytes())
                 response += (
-                    f"BODY[HEADER] {headers_len}\r\n"
+                    "BODY[HEADER] {%d}\r\n" % headers_len
                 ).encode() + message_headers.as_bytes()
 
             if part == "FLAGS":
