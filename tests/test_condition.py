@@ -50,3 +50,21 @@ def test_condition_body(mailbox, make_message, content_text, content_html):
 
     cond_ko = Body(BODY="contcont")
     assert cond_ko.eval(m) is False
+
+
+def test_condition_frozenset_operand(mailbox, make_message):
+    # GIVEN a message from "from@ok.com"
+    mailbox.login("u", "p")
+    make_message(content_text="content")
+    messages = list(mailbox.fetch())
+    m = messages[0]
+
+    # WHEN a From condition uses a frozenset with one matching value
+    cond_match = From(FROM=frozenset(["from@ok.com", "other@ok.com"]))
+    # THEN it matches
+    assert cond_match.eval(m) is True
+
+    # WHEN a From condition uses a frozenset with no matching values
+    cond_no_match = From(FROM=frozenset(["nobody@ok.com", "other@ok.com"]))
+    # THEN it does not match
+    assert cond_no_match.eval(m) is False

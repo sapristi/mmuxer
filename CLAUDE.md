@@ -94,6 +94,19 @@ mmuxer sieve-export --config-file config.yaml --dest-file rules.sieve
 - Rules and conditions implement `to_sieve()` methods
 - Exported rules maintain same logic as IMAP implementation
 
+### Test Style
+
+Tests use GIVEN/WHEN/THEN comments to structure each test:
+```python
+def test_example():
+    # GIVEN a message from "user@example.com"
+    ...
+    # WHEN the rule is applied
+    ...
+    # THEN the message is moved to the destination folder
+    ...
+```
+
 ### Testing Infrastructure
 
 Tests use a mock IMAP server from `aioimaplib` (see `tests/imap_server.py`) started automatically by pytest-bg-process. The background server command and log file are configured in `pyproject.toml` under `[tool.pytest.ini_options]`.

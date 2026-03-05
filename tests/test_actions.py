@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 from mmuxer.models.action import DeleteAction, FlagAction, MoveAction, UnflagAction
 from mmuxer.models.enums import Flag
 
@@ -66,3 +68,35 @@ def test_flag_actions(mailbox, make_message):
     assert len(messages) == 1
     m_unflagged = messages[0]
     assert Flag.FLAGGED.imap not in m_unflagged.flags
+
+
+def test_move_action_skip_same_folder():
+    # GIVEN a MoveAction targeting "INBOX" and a message already in "INBOX"
+    action = MoveAction(dest="INBOX")
+    message = MagicMock()
+    message.associated_folder = "INBOX"
+
+    # WHEN skip() is called
+    # THEN it returns True (redundant move is skipped)
+    assert action.skip(message) is True
+
+
+def test_move_action_skip_different_folder():
+    # GIVEN a MoveAction targeting "Archive" and a message in "INBOX"
+    action = MoveAction(dest="Archive")
+    message = MagicMock()
+    message.associated_folder = "INBOX"
+
+    # WHEN skip() is called
+    # THEN it returns False (move is needed)
+    assert action.skip(message) is False
+
+
+def test_move_action_skip_no_associated_folder():
+    # GIVEN a MoveAction and a message without an associated_folder attribute
+    action = MoveAction(dest="Archive")
+    message = MagicMock(spec=[])  # no attributes
+
+    # WHEN skip() is called
+    # THEN it returns False (move is needed)
+    assert action.skip(message) is False
