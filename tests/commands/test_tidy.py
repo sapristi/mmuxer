@@ -23,7 +23,7 @@ def test_tidy(mailbox, make_message, tmp_path: Path):
     """
     config_file = tmp_path / "config.py"
     config_file.write_text(config)
-    state.load_config_file(config_file)
+    state.load_config_file(config_file, encoding=None)
     state._mailbox = mailbox
 
     mailbox.login("u", "p")

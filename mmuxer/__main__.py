@@ -17,7 +17,7 @@ from .cli.run import monitor as monitor_cmd
 from .cli.run import tidy as tidy_cmd
 from .cli.sieve import app as sieve_app
 from .config_state import state
-from .utils import config_file_typer_option
+from .utils import config_file_typer_option, encoding_typer_option
 
 
 class OrderCommands(TyperGroup):
@@ -75,10 +75,9 @@ app.add_typer(operations_app, rich_help_panel="Main commands")
 
 
 @app.command(rich_help_panel="Util commands")
-def check(config_file: Path = config_file_typer_option, encoding: str = None):
+def check(config_file: Path = config_file_typer_option, encoding: Optional[str] = encoding_typer_option):
     """Load the config and connect to the IMAP server."""
-    state.encoding = encoding
-    state.load_config_file(config_file)
+    state.load_config_file(config_file, encoding)
     state.create_mailbox()
     pprint(state.rules)
 

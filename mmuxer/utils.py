@@ -15,6 +15,9 @@ from rich.progress import Progress
 config_file_typer_option = typer.Option(
     Path("config.yaml"), exists=True, dir_okay=False, readable=True, resolve_path=True
 )
+encoding_typer_option = typer.Option(
+    None, help="Encoding to use when parsing config file", envvar="MMUXER_ENCODING"
+)
 logger = logging.getLogger(__name__)
 
 

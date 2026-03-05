@@ -5,7 +5,7 @@ from typing import Union
 import typer
 
 from mmuxer.config_state import state
-from mmuxer.utils import config_file_typer_option, progress_when_tty
+from mmuxer.utils import config_file_typer_option, encoding_typer_option, progress_when_tty
 from mmuxer.workers import MonitorWorker, WatcherWorker
 
 logger = logging.getLogger(__name__)
@@ -46,11 +46,10 @@ def tidy(
     config_file: Path = config_file_typer_option,
     folder: Union[str, None] = typer.Option(None, help="Folder to fetch the messages from"),
     dry_run: bool = typer.Option(False, help="Print actions instead of running them"),
-    encoding: str = typer.Option(None, help="Encoding to use when parsing config file"),
+    encoding: Union[str, None] = encoding_typer_option,
 ):
     """Run once, on all messages of the INBOX (or the given folder)."""
-    state.encoding = encoding
-    state.load_config_file(config_file)
+    state.load_config_file(config_file, encoding)
     state.create_mailbox()
     _tidy(folder, dry_run)
 
@@ -62,11 +61,10 @@ def monitor(
     auto_reload: bool = typer.Option(
         False, help="Auto-reload config file on modification (EXPERIMENTAL)"
     ),
-    encoding: str = typer.Option(None, help="Encoding to use when parsing config file"),
+    encoding: Union[str, None] = encoding_typer_option,
 ):
     """Monitor mailbox, and apply rules on unseen messages."""
-    state.encoding = encoding
-    state.load_config_file(config_file)
+    state.load_config_file(config_file, encoding)
     state.create_mailbox()
 
     if auto_reload:

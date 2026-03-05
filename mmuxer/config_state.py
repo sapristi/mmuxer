@@ -51,7 +51,6 @@ class State:
     )
 
     def __init__(self):
-        self._encoding = None
         self._settings = None
         self._rules = None
         self._scripts = None
@@ -60,9 +59,10 @@ class State:
         self._operations = []
         self.actions: dict[str, Action] = default_actions
 
-    def load_config_file(self, config_file: Path):
+    def load_config_file(self, config_file: Path, encoding: None | str):
         logger.info("Loading config from %s", config_file)
         self._config_file = config_file
+        self._encoding = encoding
         self._parse_config_file()
 
     def reload_config_file(self):
@@ -151,14 +151,6 @@ class State:
         if self._config_file is None:
             raise Exception("Uninitialized config_file")
         return self._config_file
-
-    @property
-    def encoding(self) -> str:
-        return self.encoding
-
-    @encoding.setter
-    def encoding(self, value: str) -> None:
-        self._encoding = value
 
     @property
     def settings(self) -> Settings:
