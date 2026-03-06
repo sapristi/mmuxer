@@ -61,14 +61,14 @@ class From(IBaseCondition):
     FROM: Union[str, frozenset[str]]
 
     def get_value(self, message: MailMessage):
-        return message.from_
+        # Remove trailing spaces if name of address is empty, returning one of 1) "name <name@example.com>" 2) "<name@example.com>" 3) "name".
+        return f"{message.from_values.name} <{message.from_}>".strip(' ')
 
     def get_operand(self) -> Union[str, Sequence[str]]:
         return self.FROM
 
     def __rich_repr__(self):
         yield self.operator.name, self.FROM
-
 
 class To(IBaseCondition):
     TO: Union[str, frozenset[str]]
